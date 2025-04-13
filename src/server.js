@@ -21,7 +21,7 @@ mongoose.connect(MONGODB_URI)
     
     // 启动服务器
     app.listen(PORT, () => {
-      logger.info(`服务器运行在端口 ${PORT}`);
+      console.log(`服务器运行在端口 ${PORT}`);
     });
   })
   .catch((err) => {

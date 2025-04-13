@@ -19,6 +19,10 @@ App({
     
     // 计算安全区域
     this.calculateSafeArea(systemInfo);
+    const port = process.env.PORT || 80;
+    app.listen(port, '0.0.0.0', () => {  // 必须监听 0.0.0.0 而不是 127.0.0.1
+        console.log(`Server running on port ${port}`);
+    });
   },
   
   // 检查登录状态
@@ -133,4 +137,4 @@ App({
     apiBaseUrl: config.apiBaseUrl,
     version: '1.0.0'
   }
-}) 
+})

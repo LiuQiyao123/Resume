@@ -7,12 +7,24 @@ Page({
   },
 
   onLoad() {
+    // 检查云开发是否初始化
+    if (!wx.cloud) {
+      console.error('请使用 2.2.3 或以上的基础库以使用云能力');
+      return;
+    }
+    
     // 检查是否支持getUserProfile接口
     if (wx.getUserProfile) {
       this.setData({
         canIUseGetUserProfile: true
       });
     }
+    
+    // 打印环境配置信息
+    console.log('当前登录页环境:', {
+      cloudEnv: app.globalData.cloudEnv,
+      serviceId: app.globalData.serviceId
+    });
   },
 
   // 获取用户信息并登录
@@ -92,14 +104,21 @@ Page({
   // 发送登录请求到后端
   async sendLoginRequest(code, userInfo = null) {
     try {
+      console.log('准备发送登录请求:', {
+        code: code,
+        userInfo: userInfo
+      });
+      
       const res = await app.request({
-        url: '/api/auth/login',
+        url: '/api/auth/login',  // 确认这个路径是否与后端匹配
         method: 'POST',
         data: {
           code,
           userInfo
         }
       });
+      
+      console.log('登录请求响应:', res);
       
       if (res.success) {
         // 保存token
@@ -124,13 +143,14 @@ Page({
           icon: 'success'
         });
       } else {
+        console.error('登录失败:', res);
         wx.showToast({
-          title: res.error.message || '登录失败',
+          title: res.error ? res.error.message : '登录失败',
           icon: 'none'
         });
       }
     } catch (error) {
-      console.error('登录请求失败', error);
+      console.error('登录请求详细错误:', error);
       wx.showToast({
         title: '登录失败，请重试',
         icon: 'none'

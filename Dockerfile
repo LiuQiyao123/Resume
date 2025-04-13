@@ -23,5 +23,9 @@ ENV PORT=80
 # 暴露端口（与微信云托管配置一致）
 EXPOSE 80
 
+# 添加健康检查等待时间（给应用更多启动时间）
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD wget -q -O - http://localhost:80/ || exit 1
+
 # 启动命令
 CMD ["npm", "start"]
