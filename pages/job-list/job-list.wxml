@@ -1,0 +1,148 @@
+<!-- pages/job-list/job-list.wxml -->
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrapper">
+      <icon type="search" size="16" color="#999"></icon>
+      <input 
+        class="search-input" 
+        placeholder="输入职位关键词搜索" 
+        confirm-type="search" 
+        value="{{searchText}}"
+        bindconfirm="searchJobs"
+      />
+      <icon wx:if="{{searchText}}" type="clear" size="16" color="#999" bindtap="clearSearch"></icon>
+    </view>
+    <view class="filter-btn" bindtap="showFilter">
+      <text>筛选</text>
+      <image src="/assets/icons/filter.png" mode="aspectFit"></image>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 职位列表 -->
+  <view class="job-list" wx:if="{{!loading && jobs.length > 0}}">
+    <view 
+      class="job-item" 
+      wx:for="{{jobs}}" 
+      wx:key="id" 
+      bindtap="viewJobDetail" 
+      data-id="{{item.id}}"
+    >
+      <view class="job-header">
+        <view class="job-title-wrapper">
+          <text class="job-title">{{item.title}}</text>
+          <text class="job-salary">{{item.salary}}</text>
+        </view>
+        <view class="job-company">{{item.company}}</view>
+      </view>
+      <view class="job-tags">
+        <text class="job-tag">{{item.city}}</text>
+        <text class="job-tag">{{item.experience}}</text>
+        <text class="job-tag">{{item.education}}</text>
+      </view>
+      <view class="job-description">{{item.description}}</view>
+      <view class="job-footer">
+        <view class="job-date">{{item.pubDate}}</view>
+        <view 
+          class="job-apply-btn {{item.applied ? 'applied' : ''}}" 
+          catchtap="applyJob" 
+          data-id="{{item.id}}"
+        >
+          <view class="applying-spinner" wx:if="{{applying && applyJobId === item.id}}"></view>
+          <text wx:else>{{item.applied ? '已投递' : '投递简历'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{isLoadingMore}}">
+      <view class="loading-spinner small"></view>
+      <text>加载更多...</text>
+    </view>
+    <view class="load-more" wx:if="{{!hasMore && jobs.length > 0}}">
+      <text>没有更多职位了</text>
+    </view>
+  </view>
+
+  <!-- 无数据提示 -->
+  <view class="empty-container" wx:if="{{!loading && jobs.length === 0}}">
+    <image class="empty-image" src="/assets/images/empty_jobs.png" mode="aspectFit"></image>
+    <text class="empty-text">没有找到匹配的职位</text>
+    <text class="empty-tip">尝试其他搜索条件或清除筛选</text>
+  </view>
+
+  <!-- 筛选面板 -->
+  <view class="filter-mask {{showFilterPanel ? 'show' : ''}}" bindtap="hideFilter"></view>
+  <view class="filter-panel {{showFilterPanel ? 'show' : ''}}">
+    <view class="filter-header">
+      <text>筛选条件</text>
+      <text class="filter-reset" bindtap="resetFilter">重置</text>
+    </view>
+    
+    <view class="filter-section">
+      <view class="filter-title">城市</view>
+      <view class="filter-options">
+        <text 
+          wx:for="{{cityOptions}}" 
+          wx:key="*this" 
+          class="filter-option {{filters.city === item ? 'active' : ''}}"
+          bindtap="selectFilter"
+          data-type="city"
+          data-value="{{item}}"
+        >{{item}}</text>
+      </view>
+    </view>
+    
+    <view class="filter-section">
+      <view class="filter-title">工作经验</view>
+      <view class="filter-options">
+        <text 
+          wx:for="{{experienceOptions}}" 
+          wx:key="*this" 
+          class="filter-option {{filters.experience === item ? 'active' : ''}}"
+          bindtap="selectFilter"
+          data-type="experience"
+          data-value="{{item}}"
+        >{{item}}</text>
+      </view>
+    </view>
+    
+    <view class="filter-section">
+      <view class="filter-title">学历要求</view>
+      <view class="filter-options">
+        <text 
+          wx:for="{{educationOptions}}" 
+          wx:key="*this" 
+          class="filter-option {{filters.education === item ? 'active' : ''}}"
+          bindtap="selectFilter"
+          data-type="education"
+          data-value="{{item}}"
+        >{{item}}</text>
+      </view>
+    </view>
+    
+    <view class="filter-section">
+      <view class="filter-title">薪资范围</view>
+      <view class="filter-options">
+        <text 
+          wx:for="{{salaryOptions}}" 
+          wx:key="*this" 
+          class="filter-option {{filters.salary === item ? 'active' : ''}}"
+          bindtap="selectFilter"
+          data-type="salary"
+          data-value="{{item}}"
+        >{{item}}</text>
+      </view>
+    </view>
+    
+    <view class="filter-footer">
+      <button class="filter-confirm-btn" bindtap="applyFilter">确认</button>
+    </view>
+  </view>
+</view> 

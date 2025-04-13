@@ -1,0 +1,147 @@
+<!-- pages/job-detail/job-detail.wxml -->
+<view class="container">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 错误提示 -->
+  <view class="error-container" wx:if="{{!loading && errorMessage}}">
+    <icon type="warn" size="64" color="#FF6347"></icon>
+    <text class="error-text">{{errorMessage}}</text>
+    <button class="retry-btn" bindtap="loadJobDetail">重新加载</button>
+  </view>
+
+  <!-- 职位详情 -->
+  <block wx:if="{{!loading && !errorMessage && jobDetail}}">
+    <!-- 顶部信息 -->
+    <view class="job-header">
+      <view class="job-title">{{jobDetail.title}}</view>
+      <view class="job-salary">{{jobDetail.salary}}</view>
+      <view class="job-tags">
+        <text class="job-tag">{{jobDetail.city}}</text>
+        <text class="job-tag">{{jobDetail.experience}}</text>
+        <text class="job-tag">{{jobDetail.education}}</text>
+      </view>
+      <view class="job-update-time">发布时间：{{jobDetail.pubDate}}</view>
+    </view>
+
+    <!-- 公司信息 -->
+    <view class="company-section" bindtap="viewCompany">
+      <view class="company-info">
+        <image class="company-logo" src="{{companyInfo.logo || '/assets/images/default_company.png'}}" mode="aspectFit"></image>
+        <view class="company-detail">
+          <view class="company-name">{{jobDetail.company}}</view>
+          <view class="company-meta">{{companyInfo.industry}} | {{companyInfo.size}} | {{companyInfo.status}}</view>
+        </view>
+      </view>
+      <view class="company-arrow">
+        <image src="/assets/icons/arrow_right.png" mode="aspectFit"></image>
+      </view>
+    </view>
+
+    <!-- 职位描述 -->
+    <view class="job-section">
+      <view class="section-title">职位描述</view>
+      <view class="job-content">
+        <text>{{jobDetail.description}}</text>
+      </view>
+    </view>
+
+    <!-- 职位要求 -->
+    <view class="job-section">
+      <view class="section-title">任职要求</view>
+      <view class="job-content">
+        <text>{{jobDetail.requirement}}</text>
+      </view>
+    </view>
+
+    <!-- 工作地址 -->
+    <view class="job-section">
+      <view class="section-title">工作地址</view>
+      <view class="job-content">
+        <text>{{jobDetail.address}}</text>
+      </view>
+    </view>
+
+    <!-- 相似职位 -->
+    <view class="similar-section" wx:if="{{similarJobs.length > 0}}">
+      <view class="section-title">相似职位</view>
+      <view class="similar-jobs">
+        <view 
+          class="similar-job-item" 
+          wx:for="{{similarJobs}}" 
+          wx:key="id" 
+          bindtap="viewSimilarJob" 
+          data-id="{{item.id}}"
+        >
+          <view class="similar-job-title">{{item.title}}</view>
+          <view class="similar-job-company">{{item.company}}</view>
+          <view class="similar-job-salary">{{item.salary}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部栏 -->
+    <view class="bottom-bar">
+      <view class="action-btn collect-btn {{isCollected ? 'active' : ''}}" bindtap="toggleCollection">
+        <image src="{{isCollected ? '/assets/icons/star_filled.png' : '/assets/icons/star.png'}}" mode="aspectFit"></image>
+        <text>{{isCollected ? '已收藏' : '收藏'}}</text>
+      </view>
+      <view class="action-btn share-btn" bindtap="onShareAppMessage">
+        <image src="/assets/icons/share.png" mode="aspectFit"></image>
+        <text>分享</text>
+      </view>
+      <button 
+        class="apply-btn {{jobDetail.applied ? 'applied' : ''}}" 
+        disabled="{{applying || jobDetail.applied}}" 
+        bindtap="showResumeSelector"
+      >
+        <view class="applying-spinner" wx:if="{{applying}}"></view>
+        <text wx:else>{{jobDetail.applied ? '已投递' : '投递简历'}}</text>
+      </button>
+    </view>
+  </block>
+
+  <!-- 简历选择面板 -->
+  <view class="resume-selector-mask {{showResumeList ? 'show' : ''}}" bindtap="hideResumeSelector"></view>
+  <view class="resume-selector-panel {{showResumeList ? 'show' : ''}}">
+    <view class="resume-selector-header">
+      <text>选择简历投递</text>
+      <view class="resume-close-btn" bindtap="hideResumeSelector">×</view>
+    </view>
+    
+    <!-- 加载简历中 -->
+    <view class="resume-loading" wx:if="{{loadingResumes}}">
+      <view class="loading-spinner"></view>
+      <text>加载简历中...</text>
+    </view>
+    
+    <!-- 简历列表 -->
+    <view class="resume-list" wx:if="{{!loadingResumes && resumeList.length > 0}}">
+      <view 
+        class="resume-item" 
+        wx:for="{{resumeList}}" 
+        wx:key="id" 
+        bindtap="selectResumeToApply" 
+        data-id="{{item.id}}"
+      >
+        <view class="resume-item-left">
+          <view class="resume-name">{{item.title || '未命名简历'}}</view>
+          <view class="resume-update-time">更新于 {{item.updateTime}}</view>
+        </view>
+        <view class="resume-item-right">
+          <image src="/assets/icons/arrow_right.png" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 无简历提示 -->
+    <view class="no-resume-tip" wx:if="{{!loadingResumes && resumeList.length === 0}}">
+      <image src="/assets/images/empty_resume.png" mode="aspectFit"></image>
+      <text>您还没有创建简历</text>
+      <button class="create-resume-btn" bindtap="createResume">创建简历</button>
+    </view>
+  </view>
+</view> 

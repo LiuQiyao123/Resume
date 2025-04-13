@@ -1,0 +1,575 @@
+<!--pages/resume-editor/resume-editor.wxml-->
+<view class="container">
+  <!-- 顶部标题栏 -->
+  <view class="header">
+    <view class="header-left">
+      <text class="back-button" bindtap="navigateBack">返回</text>
+    </view>
+    <view class="header-title">
+      <input 
+        class="resume-title-input" 
+        value="{{resumeData.title}}" 
+        bindinput="onTitleChange"
+        placeholder="简历标题"
+      />
+    </view>
+    <view class="header-right">
+      <button class="preview-btn" bindtap="previewResume">预览</button>
+    </view>
+  </view>
+  
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 错误提示 -->
+  <view class="error-container" wx:if="{{errorMessage && !loading}}">
+    <text class="error-message">{{errorMessage}}</text>
+    <button class="btn-retry" bindtap="navigateBack">返回</button>
+  </view>
+  
+  <!-- 主内容区域 -->
+  <view class="content" wx:if="{{!loading && !errorMessage}}">
+    <!-- 部分切换器 -->
+    <view class="section-tabs">
+      <view 
+        class="section-tab {{currentSection === 'basic' ? 'active' : ''}}" 
+        bindtap="switchSection" 
+        data-section="basic"
+      >
+        基本信息
+      </view>
+      <view 
+        class="section-tab {{currentSection === 'education' ? 'active' : ''}}" 
+        bindtap="switchSection" 
+        data-section="education"
+      >
+        教育经历
+      </view>
+      <view 
+        class="section-tab {{currentSection === 'experience' ? 'active' : ''}}" 
+        bindtap="switchSection" 
+        data-section="experience"
+      >
+        工作经验
+      </view>
+      <view 
+        class="section-tab {{currentSection === 'projects' ? 'active' : ''}}" 
+        bindtap="switchSection" 
+        data-section="projects"
+      >
+        项目经验
+      </view>
+      <view 
+        class="section-tab {{currentSection === 'skills' ? 'active' : ''}}" 
+        bindtap="switchSection" 
+        data-section="skills"
+      >
+        技能特长
+      </view>
+    </view>
+    
+    <!-- 基本信息 -->
+    <view class="section-content" wx:if="{{currentSection === 'basic'}}">
+      <view class="form-item">
+        <view class="form-label required">姓名</view>
+        <input 
+          class="form-input {{formErrors.name ? 'error' : ''}}" 
+          placeholder="请输入您的姓名"
+          value="{{resumeData.basicInfo.name}}"
+          bindinput="onBasicInfoChange"
+          data-field="name"
+        />
+        <view class="error-text" wx:if="{{formErrors.name}}">{{formErrors.name}}</view>
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">手机号码</view>
+        <input 
+          class="form-input" 
+          placeholder="请输入您的手机号码"
+          value="{{resumeData.basicInfo.phone}}"
+          bindinput="onBasicInfoChange"
+          data-field="phone"
+          type="number"
+          maxlength="11"
+        />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">电子邮箱</view>
+        <input 
+          class="form-input" 
+          placeholder="请输入您的电子邮箱"
+          value="{{resumeData.basicInfo.email}}"
+          bindinput="onBasicInfoChange"
+          data-field="email"
+          type="text"
+        />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">所在城市</view>
+        <input 
+          class="form-input" 
+          placeholder="请输入您所在的城市"
+          value="{{resumeData.basicInfo.location}}"
+          bindinput="onBasicInfoChange"
+          data-field="location"
+        />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">目标职位</view>
+        <input 
+          class="form-input" 
+          placeholder="请输入您的目标职位"
+          value="{{resumeData.basicInfo.position}}"
+          bindinput="onBasicInfoChange"
+          data-field="position"
+        />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">个人简介</view>
+        <textarea 
+          class="form-textarea" 
+          placeholder="请简要介绍您自己，包括职业目标、优势等"
+          value="{{resumeData.basicInfo.summary}}"
+          bindinput="onBasicInfoChange"
+          data-field="summary"
+          maxlength="500"
+        />
+        <view class="textarea-counter">{{resumeData.basicInfo.summary.length || 0}}/500</view>
+      </view>
+    </view>
+    
+    <!-- 教育经历 -->
+    <view class="section-content" wx:if="{{currentSection === 'education'}}">
+      <view class="section-header">
+        <text class="section-title">教育经历</text>
+        <button class="btn-add" bindtap="showEducationForm">添加</button>
+      </view>
+      
+      <view class="items-container">
+        <view class="empty-container" wx:if="{{resumeData.education.length === 0}}">
+          <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
+          <text class="empty-text">暂无教育经历，点击"添加"按钮添加</text>
+        </view>
+        
+        <view class="item-card" wx:for="{{resumeData.education}}" wx:key="index">
+          <view class="item-header">
+            <view class="item-title">{{item.school}}</view>
+            <view class="item-actions">
+              <text class="action-button edit" bindtap="showEducationForm" data-index="{{index}}">编辑</text>
+              <text class="action-button delete" bindtap="deleteEducation" data-index="{{index}}">删除</text>
+            </view>
+          </view>
+          
+          <view class="item-content">
+            <view class="item-info">
+              <text class="item-label">学历：</text>
+              <text class="item-value">{{item.degree}}</text>
+            </view>
+            <view class="item-info">
+              <text class="item-label">专业：</text>
+              <text class="item-value">{{item.major}}</text>
+            </view>
+            <view class="item-info">
+              <text class="item-label">时间：</text>
+              <text class="item-value">{{item.startDate}} - {{item.endDate || '至今'}}</text>
+            </view>
+            <view class="item-description" wx:if="{{item.description}}">
+              <text>{{item.description}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 工作经验 -->
+    <view class="section-content" wx:if="{{currentSection === 'experience'}}">
+      <view class="section-header">
+        <text class="section-title">工作经验</text>
+        <button class="btn-add" bindtap="showExperienceForm">添加</button>
+      </view>
+      
+      <view class="items-container">
+        <view class="empty-container" wx:if="{{resumeData.experience.length === 0}}">
+          <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
+          <text class="empty-text">暂无工作经验，点击"添加"按钮添加</text>
+        </view>
+        
+        <view class="item-card" wx:for="{{resumeData.experience}}" wx:key="index">
+          <view class="item-header">
+            <view class="item-title">{{item.company}}</view>
+            <view class="item-actions">
+              <text class="action-button edit" bindtap="showExperienceForm" data-index="{{index}}">编辑</text>
+              <text class="action-button delete" bindtap="deleteExperience" data-index="{{index}}">删除</text>
+            </view>
+          </view>
+          
+          <view class="item-content">
+            <view class="item-info">
+              <text class="item-label">职位：</text>
+              <text class="item-value">{{item.position}}</text>
+            </view>
+            <view class="item-info" wx:if="{{item.location}}">
+              <text class="item-label">地点：</text>
+              <text class="item-value">{{item.location}}</text>
+            </view>
+            <view class="item-info">
+              <text class="item-label">时间：</text>
+              <text class="item-value">{{item.startDate}} - {{item.endDate || '至今'}}</text>
+            </view>
+            <view class="item-description" wx:if="{{item.description}}">
+              <text>{{item.description}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 项目经验 -->
+    <view class="section-content" wx:if="{{currentSection === 'projects'}}">
+      <view class="section-header">
+        <text class="section-title">项目经验</text>
+        <button class="btn-add" bindtap="showProjectForm">添加</button>
+      </view>
+      
+      <view class="items-container">
+        <view class="empty-container" wx:if="{{resumeData.projects.length === 0}}">
+          <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
+          <text class="empty-text">暂无项目经验，点击"添加"按钮添加</text>
+        </view>
+        
+        <view class="item-card" wx:for="{{resumeData.projects}}" wx:key="index">
+          <view class="item-header">
+            <view class="item-title">{{item.name}}</view>
+            <view class="item-actions">
+              <text class="action-button edit" bindtap="showProjectForm" data-index="{{index}}">编辑</text>
+              <text class="action-button delete" bindtap="deleteProject" data-index="{{index}}">删除</text>
+            </view>
+          </view>
+          
+          <view class="item-content">
+            <view class="item-info">
+              <text class="item-label">角色：</text>
+              <text class="item-value">{{item.role}}</text>
+            </view>
+            <view class="item-info">
+              <text class="item-label">时间：</text>
+              <text class="item-value">{{item.startDate}} - {{item.endDate || '至今'}}</text>
+            </view>
+            <view class="item-info" wx:if="{{item.technologies}}">
+              <text class="item-label">技术栈：</text>
+              <text class="item-value">{{item.technologies}}</text>
+            </view>
+            <view class="item-description" wx:if="{{item.description}}">
+              <text>{{item.description}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 技能特长 -->
+    <view class="section-content" wx:if="{{currentSection === 'skills'}}">
+      <view class="section-header">
+        <text class="section-title">技能特长</text>
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">技能列表</view>
+        <textarea 
+          class="form-textarea" 
+          placeholder="请输入您的技能，用逗号分隔，如：Java, Python, 项目管理"
+          value="{{getSkillsString()}}"
+          bindinput="onSkillsChange"
+          maxlength="500"
+        />
+        <view class="form-tips">请使用逗号分隔不同的技能</view>
+      </view>
+      
+      <view class="skills-preview" wx:if="{{resumeData.skills.length > 0}}">
+        <view class="skill-tag" wx:for="{{resumeData.skills}}" wx:key="index">
+          {{item}}
+        </view>
+      </view>
+    </view>
+    
+    <!-- 底部保存按钮 -->
+    <view class="footer-actions">
+      <button class="btn-save" bindtap="saveResume" loading="{{saving}}">保存</button>
+    </view>
+  </view>
+  
+  <!-- 教育经历表单弹窗 -->
+  <view class="modal-mask" wx:if="{{showEducationForm}}" bindtap="hideEducationForm"></view>
+  <view class="modal-container" wx:if="{{showEducationForm}}">
+    <view class="modal-content" catchtap>
+      <view class="modal-header">
+        <text class="modal-title">{{currentEditIndex >= 0 ? '编辑教育经历' : '添加教育经历'}}</text>
+        <text class="modal-close" bindtap="hideEducationForm">×</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-item">
+          <view class="form-label required">学校名称</view>
+          <input 
+            class="form-input {{formErrors.school ? 'error' : ''}}" 
+            placeholder="请输入学校名称"
+            value="{{formData.school}}"
+            bindinput="onFormInputChange"
+            data-field="school"
+          />
+          <view class="error-text" wx:if="{{formErrors.school}}">{{formErrors.school}}</view>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label required">学历/学位</view>
+          <input 
+            class="form-input {{formErrors.degree ? 'error' : ''}}" 
+            placeholder="请输入学历或学位，如：本科、硕士"
+            value="{{formData.degree}}"
+            bindinput="onFormInputChange"
+            data-field="degree"
+          />
+          <view class="error-text" wx:if="{{formErrors.degree}}">{{formErrors.degree}}</view>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label required">专业</view>
+          <input 
+            class="form-input {{formErrors.major ? 'error' : ''}}" 
+            placeholder="请输入专业名称"
+            value="{{formData.major}}"
+            bindinput="onFormInputChange"
+            data-field="major"
+          />
+          <view class="error-text" wx:if="{{formErrors.major}}">{{formErrors.major}}</view>
+        </view>
+        
+        <view class="form-row">
+          <view class="form-item half">
+            <view class="form-label required">开始时间</view>
+            <input 
+              class="form-input {{formErrors.startDate ? 'error' : ''}}" 
+              placeholder="如：2018-09"
+              value="{{formData.startDate}}"
+              bindinput="onFormInputChange"
+              data-field="startDate"
+            />
+            <view class="error-text" wx:if="{{formErrors.startDate}}">{{formErrors.startDate}}</view>
+          </view>
+          
+          <view class="form-item half">
+            <view class="form-label">结束时间</view>
+            <input 
+              class="form-input" 
+              placeholder="如：2022-06，若在读则留空"
+              value="{{formData.endDate}}"
+              bindinput="onFormInputChange"
+              data-field="endDate"
+            />
+          </view>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label">描述</view>
+          <textarea 
+            class="form-textarea" 
+            placeholder="请简要描述您的在校经历、成绩等（选填）"
+            value="{{formData.description}}"
+            bindinput="onFormInputChange"
+            data-field="description"
+          />
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="hideEducationForm">取消</button>
+        <button class="btn-confirm" bindtap="saveEducationForm">保存</button>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 工作经验表单弹窗 -->
+  <view class="modal-mask" wx:if="{{showExperienceForm}}" bindtap="hideExperienceForm"></view>
+  <view class="modal-container" wx:if="{{showExperienceForm}}">
+    <view class="modal-content" catchtap>
+      <view class="modal-header">
+        <text class="modal-title">{{currentEditIndex >= 0 ? '编辑工作经验' : '添加工作经验'}}</text>
+        <text class="modal-close" bindtap="hideExperienceForm">×</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-item">
+          <view class="form-label required">公司名称</view>
+          <input 
+            class="form-input {{formErrors.company ? 'error' : ''}}" 
+            placeholder="请输入公司名称"
+            value="{{formData.company}}"
+            bindinput="onFormInputChange"
+            data-field="company"
+          />
+          <view class="error-text" wx:if="{{formErrors.company}}">{{formErrors.company}}</view>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label required">职位</view>
+          <input 
+            class="form-input {{formErrors.position ? 'error' : ''}}" 
+            placeholder="请输入您的职位"
+            value="{{formData.position}}"
+            bindinput="onFormInputChange"
+            data-field="position"
+          />
+          <view class="error-text" wx:if="{{formErrors.position}}">{{formErrors.position}}</view>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label">工作地点</view>
+          <input 
+            class="form-input" 
+            placeholder="请输入工作地点（选填）"
+            value="{{formData.location}}"
+            bindinput="onFormInputChange"
+            data-field="location"
+          />
+        </view>
+        
+        <view class="form-row">
+          <view class="form-item half">
+            <view class="form-label required">开始时间</view>
+            <input 
+              class="form-input {{formErrors.startDate ? 'error' : ''}}" 
+              placeholder="如：2018-09"
+              value="{{formData.startDate}}"
+              bindinput="onFormInputChange"
+              data-field="startDate"
+            />
+            <view class="error-text" wx:if="{{formErrors.startDate}}">{{formErrors.startDate}}</view>
+          </view>
+          
+          <view class="form-item half">
+            <view class="form-label">结束时间</view>
+            <input 
+              class="form-input" 
+              placeholder="如：2022-06，若在职则留空"
+              value="{{formData.endDate}}"
+              bindinput="onFormInputChange"
+              data-field="endDate"
+            />
+          </view>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label">工作描述</view>
+          <textarea 
+            class="form-textarea" 
+            placeholder="请描述您的工作职责、成就等"
+            value="{{formData.description}}"
+            bindinput="onFormInputChange"
+            data-field="description"
+          />
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="hideExperienceForm">取消</button>
+        <button class="btn-confirm" bindtap="saveExperienceForm">保存</button>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 项目经验表单弹窗 -->
+  <view class="modal-mask" wx:if="{{showProjectForm}}" bindtap="hideProjectForm"></view>
+  <view class="modal-container" wx:if="{{showProjectForm}}">
+    <view class="modal-content" catchtap>
+      <view class="modal-header">
+        <text class="modal-title">{{currentEditIndex >= 0 ? '编辑项目经验' : '添加项目经验'}}</text>
+        <text class="modal-close" bindtap="hideProjectForm">×</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-item">
+          <view class="form-label required">项目名称</view>
+          <input 
+            class="form-input {{formErrors.name ? 'error' : ''}}" 
+            placeholder="请输入项目名称"
+            value="{{formData.name}}"
+            bindinput="onFormInputChange"
+            data-field="name"
+          />
+          <view class="error-text" wx:if="{{formErrors.name}}">{{formErrors.name}}</view>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label required">担任角色</view>
+          <input 
+            class="form-input {{formErrors.role ? 'error' : ''}}" 
+            placeholder="请输入您在项目中的角色"
+            value="{{formData.role}}"
+            bindinput="onFormInputChange"
+            data-field="role"
+          />
+          <view class="error-text" wx:if="{{formErrors.role}}">{{formErrors.role}}</view>
+        </view>
+        
+        <view class="form-row">
+          <view class="form-item half">
+            <view class="form-label">开始时间</view>
+            <input 
+              class="form-input" 
+              placeholder="如：2018-09"
+              value="{{formData.startDate}}"
+              bindinput="onFormInputChange"
+              data-field="startDate"
+            />
+          </view>
+          
+          <view class="form-item half">
+            <view class="form-label">结束时间</view>
+            <input 
+              class="form-input" 
+              placeholder="如：2022-06，若进行中则留空"
+              value="{{formData.endDate}}"
+              bindinput="onFormInputChange"
+              data-field="endDate"
+            />
+          </view>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label">技术栈/工具</view>
+          <input 
+            class="form-input" 
+            placeholder="请输入项目使用的技术或工具"
+            value="{{formData.technologies}}"
+            bindinput="onFormInputChange"
+            data-field="technologies"
+          />
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label">项目描述</view>
+          <textarea 
+            class="form-textarea" 
+            placeholder="请描述项目内容、您的职责和成果等"
+            value="{{formData.description}}"
+            bindinput="onFormInputChange"
+            data-field="description"
+          />
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="hideProjectForm">取消</button>
+        <button class="btn-confirm" bindtap="saveProjectForm">保存</button>
+      </view>
+    </view>
+  </view>
+</view> 

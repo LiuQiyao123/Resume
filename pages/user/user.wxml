@@ -1,0 +1,94 @@
+<!--pages/user/user.wxml-->
+<view class="container">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 未登录状态 -->
+  <view class="no-login-container" wx:if="{{!loading && !isLogin}}">
+    <image class="no-login-image" src="/images/no-login.png" mode="aspectFit"></image>
+    <text class="no-login-text">登录后可查看个人信息</text>
+    <button class="btn-login" bindtap="goToLogin">去登录</button>
+  </view>
+
+  <!-- 已登录状态 -->
+  <block wx:if="{{!loading && isLogin}}">
+    <!-- 用户信息头部 -->
+    <view class="user-header">
+      <view class="user-info">
+        <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="user-details">
+          <view class="user-name">{{userInfo.nickName || '用户'}}</view>
+          <view class="user-id">ID: {{userInfo.userId || '未知'}}</view>
+        </view>
+      </view>
+      <view class="user-actions">
+        <button class="contact-btn" open-type="contact">联系客服</button>
+      </view>
+    </view>
+
+    <!-- 积分卡片 -->
+    <view class="card points-card">
+      <view class="card-header">
+        <view class="card-title">
+          <image class="card-icon" src="/images/points-icon.png" mode="aspectFit"></image>
+          <text>积分余额</text>
+        </view>
+        <view class="card-action" bindtap="viewPointsRecords">查看明细</view>
+      </view>
+      <view class="card-content">
+        <view class="points-amount">{{points}}</view>
+        <button class="btn-recharge" bindtap="rechargePoints">充值</button>
+      </view>
+      <view class="points-records" wx:if="{{pointsRecords.length > 0}}">
+        <view class="record-item" wx:for="{{pointsRecords}}" wx:key="id">
+          <view class="record-info">
+            <view class="record-title">{{item.title}}</view>
+            <view class="record-time">{{item.time}}</view>
+          </view>
+          <view class="record-amount {{item.type === 'income' ? 'income' : 'expense'}}">
+            {{item.type === 'income' ? '+' : '-'}}{{item.amount}}
+          </view>
+        </view>
+      </view>
+      <view class="no-records" wx:else>
+        <text>暂无积分记录</text>
+      </view>
+    </view>
+
+    <!-- 我的简历 -->
+    <view class="card" bindtap="goToMyResumes">
+      <view class="card-header">
+        <view class="card-title">
+          <image class="card-icon" src="/images/resume-icon.png" mode="aspectFit"></image>
+          <text>我的简历</text>
+        </view>
+        <view class="card-action">查看全部</view>
+      </view>
+      <view class="resume-count">
+        <text>已创建 {{resumeCount}} 份简历</text>
+      </view>
+    </view>
+
+    <!-- 设置项 -->
+    <view class="settings-section">
+      <view class="section-title">设置</view>
+      <view class="settings-list">
+        <view class="setting-item" wx:for="{{settingItems}}" wx:key="id" bindtap="goToSetting" data-item="{{item}}">
+          <view class="setting-left">
+            <image class="setting-icon" src="/images/{{item.icon}}" mode="aspectFit"></image>
+            <text class="setting-name">{{item.name}}</text>
+          </view>
+          <image class="arrow-icon" src="/images/arrow-right.png" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+
+    <!-- 退出登录 -->
+    <view class="logout-section">
+      <button class="btn-logout" bindtap="logout">退出登录</button>
+    </view>
+  </block>
+</view> 

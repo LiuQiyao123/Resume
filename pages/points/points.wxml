@@ -1,0 +1,173 @@
+<!--pages/points/points.wxml-->
+<view class="container">
+  <!-- 顶部积分展示 -->
+  <view class="points-header">
+    <view class="points-card">
+      <view class="user-info" bindtap="navigateToUser">
+        <image class="avatar" src="{{app.globalData.userInfo.avatarUrl || '/images/default-avatar.png'}}"></image>
+        <text class="username">{{app.globalData.userInfo.nickName || '未登录'}}</text>
+      </view>
+      
+      <view class="points-info">
+        <view class="points-title">我的积分</view>
+        <view class="points-value">{{balance}}</view>
+      </view>
+      
+      <view class="usage-tips">
+        <text class="tips-text">积分可用于AI问答、简历优化、模板下载等</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 每日任务 -->
+  <view class="section tasks-section">
+    <view class="section-header">
+      <text class="section-title">每日任务</text>
+      <text class="section-subtitle">完成任务获取积分</text>
+    </view>
+    
+    <view class="tasks-content" wx:if="{{!loadingTasks}}">
+      <!-- 登录任务 -->
+      <view class="task-item">
+        <view class="task-info">
+          <view class="task-icon login-task-icon">
+            <image src="/images/login-task.png" mode="aspectFit"></image>
+          </view>
+          <view class="task-name">每日登录</view>
+        </view>
+        
+        <view class="task-right">
+          <view class="task-points">+{{dailyTask.login.points}}</view>
+          <view class="task-status {{dailyTask.login.completed ? 'task-completed' : 'task-todo'}}">
+            {{dailyTask.login.completed ? '已完成' : '去完成'}}
+          </view>
+        </view>
+      </view>
+      
+      <!-- 分享任务 -->
+      <view class="task-item">
+        <view class="task-info">
+          <view class="task-icon share-task-icon">
+            <image src="/images/share-task.png" mode="aspectFit"></image>
+          </view>
+          <view class="task-name">分享给好友</view>
+        </view>
+        
+        <view class="task-right">
+          <view class="task-points">+{{dailyTask.share.points}}</view>
+          <button 
+            class="task-status {{dailyTask.share.completed ? 'task-completed' : 'task-todo'}}"
+            open-type="{{!dailyTask.share.completed ? 'share' : ''}}"
+            bindtap="completeShareTask"
+          >
+            {{dailyTask.share.completed ? '已完成' : '去完成'}}
+          </button>
+        </view>
+      </view>
+      
+      <!-- 看广告任务 -->
+      <view class="task-item">
+        <view class="task-info">
+          <view class="task-icon ad-task-icon">
+            <image src="/images/ad-task.png" mode="aspectFit"></image>
+          </view>
+          <view class="task-name">观看广告</view>
+          <view class="task-desc">{{dailyTask.adView.currentTimes}}/{{dailyTask.adView.maxTimes}}次</view>
+        </view>
+        
+        <view class="task-right">
+          <view class="task-points">+{{dailyTask.adView.points}}</view>
+          <view 
+            class="task-status {{dailyTask.adView.completed ? 'task-completed' : (dailyTask.adView.currentTimes >= dailyTask.adView.maxTimes ? 'task-completed' : 'task-todo')}}"
+            bindtap="completeAdViewTask"
+          >
+            {{dailyTask.adView.completed || dailyTask.adView.currentTimes >= dailyTask.adView.maxTimes ? '已完成' : '去完成'}}
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 加载中 -->
+    <view class="loading-container small" wx:if="{{loadingTasks}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+  
+  <!-- 充值套餐 -->
+  <view class="section packages-section">
+    <view class="section-header">
+      <text class="section-title">积分套餐</text>
+      <text class="section-subtitle">实惠购买积分套餐</text>
+    </view>
+    
+    <view class="packages-content">
+      <view 
+        class="package-item {{item.popular ? 'package-popular' : ''}}" 
+        wx:for="{{packages}}" 
+        wx:key="id"
+        bindtap="createPayment"
+        data-id="{{item.id}}"
+      >
+        <view class="package-popular-tag" wx:if="{{item.popular}}">
+          <text>推荐</text>
+        </view>
+        
+        <view class="package-header">
+          <text class="package-name">{{item.name}}</text>
+          <text class="package-points">{{item.points}}积分</text>
+        </view>
+        
+        <view class="package-price-info">
+          <text class="package-price">¥{{item.price}}</text>
+          <text class="package-original-price">¥{{item.originalPrice}}</text>
+        </view>
+        
+        <view class="package-buy-btn">购买</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 积分记录 -->
+  <view class="section history-section">
+    <view class="section-header">
+      <text class="section-title">积分记录</text>
+    </view>
+    
+    <view class="history-content" wx:if="{{!loading && !isEmpty}}">
+      <view class="history-item" wx:for="{{history}}" wx:key="id">
+        <view class="history-left">
+          <view class="history-title">{{item.description}}</view>
+          <view class="history-time">{{item.formattedTime}}</view>
+        </view>
+        
+        <view class="history-points {{item.type === 'EXPENSE' ? 'points-expense' : 'points-income'}}">
+          {{item.type === 'EXPENSE' ? '-' : '+'}}{{item.amount}}
+        </view>
+      </view>
+      
+      <!-- 加载更多 -->
+      <view class="loading-more" wx:if="{{loadingMore}}">
+        <view class="loading-spinner"></view>
+        <text>加载更多...</text>
+      </view>
+      
+      <!-- 已全部加载 -->
+      <view class="no-more" wx:if="{{currentPage >= totalPages && history.length > 0}}">
+        <text>- 没有更多记录了 -</text>
+      </view>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-container" wx:if="{{!loading && isEmpty}}">
+      <image class="empty-icon" src="/images/empty.png"></image>
+      <text class="empty-text">暂无积分记录</text>
+    </view>
+    
+    <!-- 加载中 -->
+    <view class="loading-container" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+</view> 

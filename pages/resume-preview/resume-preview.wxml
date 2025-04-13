@@ -1,0 +1,341 @@
+<!--pages/resume-preview/resume-preview.wxml-->
+<view class="container">
+  <!-- 顶部操作栏 -->
+  <view class="header">
+    <view class="header-left">
+      <text class="back-button" bindtap="goToEdit">返回</text>
+    </view>
+    <view class="header-title">简历预览</view>
+    <view class="header-right">
+      <text class="template-button" bindtap="showTemplateSelector">更换模板</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 错误提示 -->
+  <view class="error-container" wx:if="{{errorMessage && !loading}}">
+    <text class="error-message">{{errorMessage}}</text>
+    <button class="btn-retry" bindtap="goToEdit">返回</button>
+  </view>
+
+  <!-- 简历预览内容 -->
+  <view class="resume-container" wx:if="{{!loading && !errorMessage && resumeData}}">
+    <!-- 模板1：标准模板 -->
+    <view class="resume-template standard" wx:if="{{selectedTemplate === 1}}">
+      <!-- 简历标题 -->
+      <view class="resume-header">
+        <view class="resume-title">{{resumeData.title}}</view>
+      </view>
+
+      <!-- 基本信息 -->
+      <view class="resume-section">
+        <view class="resume-personal">
+          <view class="resume-name">{{resumeData.basicInfo.name}}</view>
+          <view class="resume-contact">
+            <text wx:if="{{resumeData.basicInfo.phone}}">{{resumeData.basicInfo.phone}}</text>
+            <text wx:if="{{resumeData.basicInfo.phone && resumeData.basicInfo.email}}"> | </text>
+            <text wx:if="{{resumeData.basicInfo.email}}">{{resumeData.basicInfo.email}}</text>
+          </view>
+          <view class="resume-info">
+            <text wx:if="{{resumeData.basicInfo.location}}">{{resumeData.basicInfo.location}}</text>
+            <text wx:if="{{resumeData.basicInfo.location && resumeData.basicInfo.position}}"> | </text>
+            <text wx:if="{{resumeData.basicInfo.position}}">求职意向：{{resumeData.basicInfo.position}}</text>
+          </view>
+        </view>
+        
+        <view class="resume-summary" wx:if="{{resumeData.basicInfo.summary}}">
+          <view class="section-title">个人简介</view>
+          <view class="section-content">{{resumeData.basicInfo.summary}}</view>
+        </view>
+      </view>
+
+      <!-- 教育经历 -->
+      <view class="resume-section" wx:if="{{resumeData.education.length > 0}}">
+        <view class="section-title">教育经历</view>
+        <view class="section-items">
+          <view class="section-item" wx:for="{{resumeData.education}}" wx:key="index">
+            <view class="item-header">
+              <view class="item-title">{{item.school}}</view>
+              <view class="item-period">{{item.startDate}} - {{item.endDate || '至今'}}</view>
+            </view>
+            <view class="item-subtitle">{{item.degree}}，{{item.major}}</view>
+            <view class="item-description" wx:if="{{item.description}}">{{item.description}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 工作经验 -->
+      <view class="resume-section" wx:if="{{resumeData.experience.length > 0}}">
+        <view class="section-title">工作经验</view>
+        <view class="section-items">
+          <view class="section-item" wx:for="{{resumeData.experience}}" wx:key="index">
+            <view class="item-header">
+              <view class="item-title">{{item.company}}</view>
+              <view class="item-period">{{item.startDate}} - {{item.endDate || '至今'}}</view>
+            </view>
+            <view class="item-subtitle">
+              {{item.position}}
+              <text wx:if="{{item.location}}">（{{item.location}}）</text>
+            </view>
+            <view class="item-description" wx:if="{{item.description}}">{{item.description}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 项目经验 -->
+      <view class="resume-section" wx:if="{{resumeData.projects.length > 0}}">
+        <view class="section-title">项目经验</view>
+        <view class="section-items">
+          <view class="section-item" wx:for="{{resumeData.projects}}" wx:key="index">
+            <view class="item-header">
+              <view class="item-title">{{item.name}}</view>
+              <view class="item-period" wx:if="{{item.startDate}}">{{item.startDate}} - {{item.endDate || '至今'}}</view>
+            </view>
+            <view class="item-subtitle">角色：{{item.role}}</view>
+            <view class="item-technology" wx:if="{{item.technologies}}">技术栈：{{item.technologies}}</view>
+            <view class="item-description" wx:if="{{item.description}}">{{item.description}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 技能特长 -->
+      <view class="resume-section" wx:if="{{resumeData.skills.length > 0}}">
+        <view class="section-title">技能特长</view>
+        <view class="section-skills">
+          <view class="skill-tag" wx:for="{{resumeData.skills}}" wx:key="index">{{item}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 模板2：专业模板 -->
+    <view class="resume-template professional" wx:if="{{selectedTemplate === 2}}">
+      <!-- 简历标题和基本信息 -->
+      <view class="resume-header professional-header">
+        <view class="resume-name-title">
+          <view class="resume-name">{{resumeData.basicInfo.name}}</view>
+          <view class="resume-title">{{resumeData.basicInfo.position || '求职者'}}</view>
+        </view>
+        <view class="resume-contact-info">
+          <view class="contact-item" wx:if="{{resumeData.basicInfo.phone}}">
+            <view class="contact-icon">📱</view>
+            <view class="contact-text">{{resumeData.basicInfo.phone}}</view>
+          </view>
+          <view class="contact-item" wx:if="{{resumeData.basicInfo.email}}">
+            <view class="contact-icon">📧</view>
+            <view class="contact-text">{{resumeData.basicInfo.email}}</view>
+          </view>
+          <view class="contact-item" wx:if="{{resumeData.basicInfo.location}}">
+            <view class="contact-icon">📍</view>
+            <view class="contact-text">{{resumeData.basicInfo.location}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 个人简介 -->
+      <view class="resume-section professional-summary" wx:if="{{resumeData.basicInfo.summary}}">
+        <view class="section-title">个人简介</view>
+        <view class="section-content">{{resumeData.basicInfo.summary}}</view>
+      </view>
+
+      <!-- 两栏布局 -->
+      <view class="professional-layout">
+        <!-- 左栏：教育、技能 -->
+        <view class="professional-column left">
+          <!-- 教育经历 -->
+          <view class="resume-section" wx:if="{{resumeData.education.length > 0}}">
+            <view class="section-title">教育经历</view>
+            <view class="section-items">
+              <view class="section-item" wx:for="{{resumeData.education}}" wx:key="index">
+                <view class="item-title">{{item.school}}</view>
+                <view class="item-subtitle">{{item.degree}}，{{item.major}}</view>
+                <view class="item-period">{{item.startDate}} - {{item.endDate || '至今'}}</view>
+                <view class="item-description" wx:if="{{item.description}}">{{item.description}}</view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 技能特长 -->
+          <view class="resume-section" wx:if="{{resumeData.skills.length > 0}}">
+            <view class="section-title">技能特长</view>
+            <view class="section-skills professional-skills">
+              <view class="skill-item" wx:for="{{resumeData.skills}}" wx:key="index">{{item}}</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 右栏：工作、项目 -->
+        <view class="professional-column right">
+          <!-- 工作经验 -->
+          <view class="resume-section" wx:if="{{resumeData.experience.length > 0}}">
+            <view class="section-title">工作经验</view>
+            <view class="section-items">
+              <view class="section-item" wx:for="{{resumeData.experience}}" wx:key="index">
+                <view class="item-title">{{item.position}}</view>
+                <view class="item-subtitle">{{item.company}}
+                  <text wx:if="{{item.location}}">（{{item.location}}）</text>
+                </view>
+                <view class="item-period">{{item.startDate}} - {{item.endDate || '至今'}}</view>
+                <view class="item-description" wx:if="{{item.description}}">{{item.description}}</view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 项目经验 -->
+          <view class="resume-section" wx:if="{{resumeData.projects.length > 0}}">
+            <view class="section-title">项目经验</view>
+            <view class="section-items">
+              <view class="section-item" wx:for="{{resumeData.projects}}" wx:key="index">
+                <view class="item-title">{{item.name}} <text class="item-role">- {{item.role}}</text></view>
+                <view class="item-period" wx:if="{{item.startDate}}">{{item.startDate}} - {{item.endDate || '至今'}}</view>
+                <view class="item-technology" wx:if="{{item.technologies}}">技术栈：{{item.technologies}}</view>
+                <view class="item-description" wx:if="{{item.description}}">{{item.description}}</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 模板3：创意模板 -->
+    <view class="resume-template creative" wx:if="{{selectedTemplate === 3}}">
+      <!-- 创意头部 -->
+      <view class="creative-header">
+        <view class="creative-name">{{resumeData.basicInfo.name}}</view>
+        <view class="creative-title">{{resumeData.basicInfo.position || '求职者'}}</view>
+        <view class="creative-contact">
+          <text wx:if="{{resumeData.basicInfo.phone}}">{{resumeData.basicInfo.phone}}</text>
+          <text class="separator" wx:if="{{resumeData.basicInfo.phone && resumeData.basicInfo.email}}">•</text>
+          <text wx:if="{{resumeData.basicInfo.email}}">{{resumeData.basicInfo.email}}</text>
+          <text class="separator" wx:if="{{(resumeData.basicInfo.phone || resumeData.basicInfo.email) && resumeData.basicInfo.location}}">•</text>
+          <text wx:if="{{resumeData.basicInfo.location}}">{{resumeData.basicInfo.location}}</text>
+        </view>
+      </view>
+
+      <!-- 创意简介 -->
+      <view class="creative-about" wx:if="{{resumeData.basicInfo.summary}}">
+        <view class="creative-section-title">关于我</view>
+        <view class="creative-section-content">{{resumeData.basicInfo.summary}}</view>
+      </view>
+
+      <!-- 创意时间线 -->
+      <view class="creative-timeline">
+        <!-- 教育经历 -->
+        <view class="creative-section" wx:if="{{resumeData.education.length > 0}}">
+          <view class="creative-section-title">教育经历</view>
+          <view class="timeline-items">
+            <view class="timeline-item" wx:for="{{resumeData.education}}" wx:key="index">
+              <view class="timeline-date">
+                <text>{{item.startDate}} - {{item.endDate || '至今'}}</text>
+              </view>
+              <view class="timeline-content">
+                <view class="timeline-title">{{item.school}}</view>
+                <view class="timeline-subtitle">{{item.degree}}，{{item.major}}</view>
+                <view class="timeline-description" wx:if="{{item.description}}">{{item.description}}</view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 工作经验 -->
+        <view class="creative-section" wx:if="{{resumeData.experience.length > 0}}">
+          <view class="creative-section-title">工作经验</view>
+          <view class="timeline-items">
+            <view class="timeline-item" wx:for="{{resumeData.experience}}" wx:key="index">
+              <view class="timeline-date">
+                <text>{{item.startDate}} - {{item.endDate || '至今'}}</text>
+              </view>
+              <view class="timeline-content">
+                <view class="timeline-title">{{item.company}}</view>
+                <view class="timeline-subtitle">
+                  {{item.position}}
+                  <text wx:if="{{item.location}}">（{{item.location}}）</text>
+                </view>
+                <view class="timeline-description" wx:if="{{item.description}}">{{item.description}}</view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 项目经验 -->
+        <view class="creative-section" wx:if="{{resumeData.projects.length > 0}}">
+          <view class="creative-section-title">项目经验</view>
+          <view class="timeline-items">
+            <view class="timeline-item" wx:for="{{resumeData.projects}}" wx:key="index">
+              <view class="timeline-date" wx:if="{{item.startDate}}">
+                <text>{{item.startDate}} - {{item.endDate || '至今'}}</text>
+              </view>
+              <view class="timeline-content">
+                <view class="timeline-title">{{item.name}}</view>
+                <view class="timeline-subtitle">角色：{{item.role}}</view>
+                <view class="timeline-technology" wx:if="{{item.technologies}}">
+                  <text>技术栈：{{item.technologies}}</text>
+                </view>
+                <view class="timeline-description" wx:if="{{item.description}}">{{item.description}}</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 技能云 -->
+      <view class="creative-section" wx:if="{{resumeData.skills.length > 0}}">
+        <view class="creative-section-title">技能特长</view>
+        <view class="creative-skills">
+          <view class="creative-skill-tag" wx:for="{{resumeData.skills}}" wx:key="index">{{item}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部操作栏 -->
+    <view class="action-bar">
+      <button class="action-button" bindtap="downloadResume">
+        <view class="button-icon">📥</view>
+        <view class="button-text">下载</view>
+      </button>
+      <button class="action-button" open-type="share" bindtap="shareResume">
+        <view class="button-icon">🔗</view>
+        <view class="button-text">分享</view>
+      </button>
+      <button class="action-button" bindtap="applyJob">
+        <view class="button-icon">💼</view>
+        <view class="button-text">投递</view>
+      </button>
+      <button class="action-button" bindtap="goToEdit">
+        <view class="button-icon">✏️</view>
+        <view class="button-text">编辑</view>
+      </button>
+    </view>
+  </view>
+
+  <!-- 模板选择器弹窗 -->
+  <view class="modal-mask" wx:if="{{showTemplateSelector}}" bindtap="hideTemplateSelector"></view>
+  <view class="modal-container" wx:if="{{showTemplateSelector}}">
+    <view class="modal-content" catchtap>
+      <view class="modal-header">
+        <text class="modal-title">选择模板</text>
+        <text class="modal-close" bindtap="hideTemplateSelector">×</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="template-list">
+          <view 
+            class="template-item {{selectedTemplate === item.id ? 'selected' : ''}}" 
+            wx:for="{{templates}}" 
+            wx:key="id"
+            bindtap="selectTemplate"
+            data-id="{{item.id}}"
+          >
+            <image class="template-thumbnail" src="{{item.thumbnail}}" mode="aspectFit"></image>
+            <view class="template-name">{{item.name}}</view>
+            <view class="template-check" wx:if="{{selectedTemplate === item.id}}">✓</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view> 

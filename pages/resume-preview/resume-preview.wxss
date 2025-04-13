@@ -1,0 +1,660 @@
+/* pages/resume-preview/resume-preview.wxss */
+
+.container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部标题栏 */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  background-color: #FFFFFF;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-left {
+  width: 20%;
+}
+
+.header-title {
+  width: 60%;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 500;
+}
+
+.header-right {
+  width: 20%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.back-button {
+  color: #333333;
+  font-size: 28rpx;
+}
+
+.template-button {
+  color: #1890ff;
+  font-size: 28rpx;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-spinner {
+  width: 64rpx;
+  height: 64rpx;
+  border: 6rpx solid #f3f3f3;
+  border-top: 6rpx solid #1890ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  color: #999999;
+  font-size: 28rpx;
+}
+
+/* 错误提示 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 28rpx;
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.btn-retry {
+  font-size: 28rpx;
+  padding: 16rpx 40rpx;
+  border-radius: 8rpx;
+  background-color: #1890ff;
+  color: #FFFFFF;
+  border: none;
+}
+
+/* 简历容器 */
+.resume-container {
+  padding: 30rpx;
+  flex: 1;
+  padding-bottom: 140rpx; /* 为底部操作栏留出空间 */
+}
+
+/* 通用简历样式 */
+.resume-template {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+}
+
+/* 标准模板样式 */
+.standard .resume-header {
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.standard .resume-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.standard .resume-personal {
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.standard .resume-name {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 16rpx;
+}
+
+.standard .resume-contact,
+.standard .resume-info {
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 12rpx;
+}
+
+.standard .resume-section {
+  margin-bottom: 40rpx;
+}
+
+.standard .section-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 20rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 2rpx solid #EEEEEE;
+}
+
+.standard .section-content {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.6;
+}
+
+.standard .section-items {
+  margin-top: 20rpx;
+}
+
+.standard .section-item {
+  margin-bottom: 30rpx;
+}
+
+.standard .item-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.standard .item-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333333;
+}
+
+.standard .item-period {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.standard .item-subtitle {
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+}
+
+.standard .item-technology {
+  font-size: 24rpx;
+  color: #666666;
+  margin-top: 8rpx;
+}
+
+.standard .item-description {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.6;
+  margin-top: 12rpx;
+}
+
+.standard .section-skills {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 20rpx;
+}
+
+.standard .skill-tag {
+  background-color: #F5F7FA;
+  padding: 8rpx 20rpx;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  color: #666666;
+  margin-right: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+/* 专业模板样式 */
+.professional {
+  padding: 0;
+  overflow: hidden;
+}
+
+.professional-header {
+  background-color: #1890ff;
+  color: #FFFFFF;
+  padding: 40rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.professional .resume-name {
+  font-size: 48rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.professional .resume-title {
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+.professional .resume-contact-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.professional .contact-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.professional .contact-icon {
+  margin-right: 12rpx;
+  font-size: 24rpx;
+}
+
+.professional .contact-text {
+  font-size: 24rpx;
+}
+
+.professional-summary {
+  padding: 40rpx;
+  background-color: #f6f9fc;
+  border-bottom: 1px solid #EEEEEE;
+}
+
+.professional-layout {
+  display: flex;
+  padding: 0;
+}
+
+.professional-column {
+  padding: 40rpx;
+}
+
+.professional-column.left {
+  width: 35%;
+  background-color: #f6f9fc;
+  border-right: 1px solid #EEEEEE;
+}
+
+.professional-column.right {
+  width: 65%;
+}
+
+.professional .section-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1890ff;
+  margin-bottom: 24rpx;
+}
+
+.professional .item-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.professional .item-subtitle {
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+}
+
+.professional .item-period {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 8rpx;
+}
+
+.professional .item-description {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.6;
+  margin: 12rpx 0 24rpx;
+}
+
+.professional .item-role {
+  font-weight: normal;
+  color: #666666;
+}
+
+.professional-skills {
+  display: flex;
+  flex-direction: column;
+}
+
+.professional .skill-item {
+  font-size: 26rpx;
+  color: #333333;
+  padding: 12rpx 0;
+  border-bottom: 1px solid #EEEEEE;
+}
+
+.professional .skill-item:last-child {
+  border-bottom: none;
+}
+
+/* 创意模板样式 */
+.creative {
+  background-color: #FFFFFF;
+  padding: 0;
+  overflow: hidden;
+}
+
+.creative-header {
+  background: linear-gradient(to right, #1890ff, #38b2ac);
+  color: #FFFFFF;
+  padding: 60rpx 40rpx;
+  text-align: center;
+}
+
+.creative-name {
+  font-size: 48rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.creative-title {
+  font-size: 28rpx;
+  opacity: 0.9;
+  margin-bottom: 20rpx;
+}
+
+.creative-contact {
+  font-size: 24rpx;
+}
+
+.creative-contact .separator {
+  margin: 0 8rpx;
+}
+
+.creative-about {
+  padding: 40rpx;
+  background-color: #f6f9fc;
+}
+
+.creative-section-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #1890ff;
+  margin-bottom: 20rpx;
+  position: relative;
+  padding-left: 24rpx;
+}
+
+.creative-section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8rpx;
+  bottom: 8rpx;
+  width: 8rpx;
+  background-color: #1890ff;
+  border-radius: 4rpx;
+}
+
+.creative-section-content {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.6;
+}
+
+.creative-timeline {
+  padding: 40rpx;
+}
+
+.creative-section {
+  margin-bottom: 40rpx;
+}
+
+.timeline-items {
+  position: relative;
+}
+
+.timeline-items::before {
+  content: '';
+  position: absolute;
+  left: 120rpx;
+  top: 0;
+  bottom: 0;
+  width: 2rpx;
+  background-color: #EEEEEE;
+}
+
+.timeline-item {
+  display: flex;
+  margin-bottom: 30rpx;
+  position: relative;
+}
+
+.timeline-date {
+  width: 120rpx;
+  font-size: 24rpx;
+  color: #999999;
+  flex-shrink: 0;
+}
+
+.timeline-content {
+  position: relative;
+  padding-left: 40rpx;
+  flex: 1;
+}
+
+.timeline-content::before {
+  content: '';
+  position: absolute;
+  left: -6rpx;
+  top: 8rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background-color: #1890ff;
+  z-index: 1;
+}
+
+.timeline-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.timeline-subtitle {
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+}
+
+.timeline-technology {
+  font-size: 24rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+}
+
+.timeline-description {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.6;
+  margin-top: 12rpx;
+}
+
+.creative-skills {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 20rpx;
+}
+
+.creative-skill-tag {
+  background: linear-gradient(to right, #1890ff, #38b2ac);
+  color: #FFFFFF;
+  padding: 12rpx 24rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  margin-right: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+/* 底部操作栏 */
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background-color: #FFFFFF;
+  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 20rpx 30rpx;
+  z-index: 100;
+}
+
+.action-button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.action-button::after {
+  border: none;
+}
+
+.button-icon {
+  font-size: 44rpx;
+  margin-bottom: 8rpx;
+}
+
+.button-text {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+/* 模板选择器弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.modal-content {
+  width: 90%;
+  max-height: 80vh;
+  background-color: #FFFFFF;
+  border-radius: 12rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #EEEEEE;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #999999;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 30rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.template-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -15rpx;
+}
+
+.template-item {
+  width: calc(50% - 30rpx);
+  margin: 0 15rpx 30rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.template-item.selected {
+  border: 2rpx solid #1890ff;
+}
+
+.template-thumbnail {
+  width: 100%;
+  height: 300rpx;
+  background-color: #F5F7FA;
+}
+
+.template-name {
+  padding: 16rpx;
+  font-size: 28rpx;
+  color: #333333;
+  text-align: center;
+}
+
+.template-check {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background-color: #1890ff;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  border-radius: 50%;
+} 

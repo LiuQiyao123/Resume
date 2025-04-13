@@ -1,0 +1,132 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 顶部信息 -->
+  <view class="header">
+    <view class="user-info" bindtap="onUserInfoTap">
+      <block wx:if="{{isLoggedIn && userInfo}}">
+        <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}"></image>
+        <view class="user-name">{{userInfo.nickName || '用户'}}</view>
+      </block>
+      <block wx:else>
+        <image class="avatar" src="/images/default-avatar.png"></image>
+        <view class="user-name login-text">点击登录</view>
+      </block>
+    </view>
+    
+    <view class="logo-area">
+      <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+      <view class="app-name">AI简历定制</view>
+    </view>
+  </view>
+  
+  <!-- 横幅轮播 -->
+  <swiper class="banner-swiper" indicator-dots autoplay circular>
+    <swiper-item wx:for="{{banners}}" wx:key="id" bindtap="onBannerTap" data-index="{{index}}">
+      <image class="banner-image" src="{{item.imageUrl}}" mode="aspectFill"></image>
+    </swiper-item>
+  </swiper>
+  
+  <!-- 快速功能入口 -->
+  <view class="quick-actions">
+    <view class="action-item" 
+          wx:for="{{quickActions}}" 
+          wx:key="id" 
+          bindtap="onQuickActionTap" 
+          data-id="{{item.id}}">
+      <view class="action-icon-container">
+        <image class="action-icon" src="{{item.icon}}" mode="aspectFit"></image>
+      </view>
+      <view class="action-name">{{item.name}}</view>
+    </view>
+  </view>
+  
+  <!-- 简历优化小贴士 -->
+  <view class="tips-container">
+    <view class="tips-header">
+      <image class="tips-icon" src="/images/light-bulb.png" mode="aspectFit"></image>
+      <text class="tips-title">简历优化小贴士</text>
+    </view>
+    
+    <view class="tips-content">
+      <swiper class="tips-swiper" vertical autoplay circular interval="5000" duration="500" current="{{currentTipIndex}}">
+        <swiper-item wx:for="{{resumeTips}}" wx:key="*this">
+          <view class="tip-item">{{item}}</view>
+        </swiper-item>
+      </swiper>
+    </view>
+  </view>
+  
+  <!-- 最近简历 -->
+  <view class="recent-resumes">
+    <view class="section-header">
+      <text class="section-title">最近简历</text>
+      <view class="view-all" bindtap="navigateTo" data-url="/pages/resume-list/resume-list">
+        查看全部
+        <text class="arrow">></text>
+      </view>
+    </view>
+    
+    <view class="resumes-container" wx:if="{{isLoggedIn && !loadingResumes}}">
+      <block wx:if="{{recentResumes.length > 0}}">
+        <view class="resume-item" 
+              wx:for="{{recentResumes}}" 
+              wx:key="id" 
+              bindtap="onResumeItemTap" 
+              data-id="{{item.id}}">
+          <view class="resume-info">
+            <view class="resume-title">{{item.title || '未命名简历'}}</view>
+            <view class="resume-time">{{item.updateTime}} 更新</view>
+          </view>
+          <view class="resume-arrow">
+            <text class="arrow">></text>
+          </view>
+        </view>
+      </block>
+      <view class="empty-resumes" wx:else>
+        <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
+        <text class="empty-text">暂无简历，快去创建吧</text>
+      </view>
+    </view>
+    
+    <view class="loading-container" wx:if="{{isLoggedIn && loadingResumes}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+    
+    <view class="login-resumes" wx:if="{{!isLoggedIn}}">
+      <view class="login-tip">登录后查看您的简历</view>
+      <button class="btn btn-primary login-btn" bindtap="navigateToLogin">立即登录</button>
+    </view>
+  </view>
+  
+  <!-- 创建简历提示 -->
+  <view class="create-resume-card" wx:if="{{isLoggedIn && recentResumes.length < 2}}">
+    <view class="card-content">
+      <view class="card-title">开始创建您的专业简历</view>
+      <view class="card-desc">AI助力简历优化，提高求职成功率</view>
+      
+      <view class="card-actions">
+        <button class="btn btn-primary" bindtap="navigateTo" data-url="/pages/resume-editor/resume-editor">创建简历</button>
+        <button class="btn btn-secondary" bindtap="onUploadTap">上传已有简历</button>
+      </view>
+    </view>
+    
+    <image class="card-bg" src="/images/resume-bg.png" mode="aspectFit"></image>
+  </view>
+  
+  <!-- AI助手入口 -->
+  <view class="ai-assistant-card" bindtap="navigateTo" data-url="/pages/chat/chat">
+    <view class="ai-icon-container">
+      <image class="ai-icon" src="/images/ai-assistant.png" mode="aspectFit"></image>
+    </view>
+    
+    <view class="ai-content">
+      <view class="ai-title">AI职场助手</view>
+      <view class="ai-desc">解答求职问题，提供专业建议</view>
+    </view>
+    
+    <view class="ai-arrow">
+      <text class="arrow">></text>
+    </view>
+  </view>
+</view> 

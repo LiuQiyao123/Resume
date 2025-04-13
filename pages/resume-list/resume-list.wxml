@@ -1,0 +1,154 @@
+<!--pages/resume-list/resume-list.wxml-->
+<view class="container">
+  <!-- 顶部区域 -->
+  <view class="header">
+    <view class="title">我的简历</view>
+    <view class="tab-container">
+      <view class="tab-item {{current === 0 ? 'tab-active' : ''}}" bindtap="switchTab" data-index="0">
+        所有简历
+      </view>
+      <view class="tab-item {{current === 1 ? 'tab-active' : ''}}" bindtap="switchTab" data-index="1">
+        最近优化
+      </view>
+    </view>
+  </view>
+  
+  <!-- 简历列表 -->
+  <scroll-view class="resume-list" scroll-y="{{true}}" enable-pull-down-refresh="{{true}}">
+    <block wx:if="{{!loading && !isEmpty}}">
+      <!-- 全部简历 -->
+      <view class="resume-container" wx:if="{{current === 0}}">
+        <block wx:for="{{resumes}}" wx:key="id">
+          <view class="resume-card card">
+            <view class="resume-header">
+              <view class="resume-title">{{item.title || '未命名简历'}}</view>
+              <view class="resume-actions" catchtap="showActions" data-index="{{index}}">
+                <image class="action-icon" src="/images/more.png" mode="aspectFit"></image>
+              </view>
+            </view>
+            
+            <view class="resume-info">
+              <view class="info-item">
+                <text class="info-label">更新时间：</text>
+                <text class="info-value">{{item.updateTime}}</text>
+              </view>
+              <view class="info-item">
+                <text class="info-label">优化次数：</text>
+                <text class="info-value">{{item.optimizationCount || 0}}次</text>
+              </view>
+            </view>
+            
+            <view class="resume-tags">
+              <view class="tag" wx:if="{{item.position}}">{{item.position}}</view>
+              <view class="tag" wx:if="{{item.templateName}}">{{item.templateName}}</view>
+              <view class="tag" wx:if="{{item.isOptimized}}">已优化</view>
+            </view>
+          </view>
+        </block>
+      </view>
+      
+      <!-- 最近优化的简历 -->
+      <view class="resume-container" wx:if="{{current === 1}}">
+        <block wx:for="{{optimizedResumes}}" wx:key="id">
+          <view class="resume-card card">
+            <view class="resume-header">
+              <view class="resume-title">{{item.title || '未命名简历'}}</view>
+              <view class="resume-actions" catchtap="showActions" data-index="{{index}}">
+                <image class="action-icon" src="/images/more.png" mode="aspectFit"></image>
+              </view>
+            </view>
+            
+            <view class="resume-info">
+              <view class="info-item">
+                <text class="info-label">更新时间：</text>
+                <text class="info-value">{{item.updateTime}}</text>
+              </view>
+              <view class="info-item">
+                <text class="info-label">优化次数：</text>
+                <text class="info-value">{{item.optimizationCount || 0}}次</text>
+              </view>
+            </view>
+            
+            <view class="resume-tags">
+              <view class="tag" wx:if="{{item.position}}">{{item.position}}</view>
+              <view class="tag" wx:if="{{item.templateName}}">{{item.templateName}}</view>
+              <view class="tag" wx:if="{{item.lastOptimizationTime}}">{{item.lastOptimizationTime}} 优化</view>
+            </view>
+            
+            <view class="optimization-info" wx:if="{{item.lastOptimizationJob}}">
+              <text class="opt-label">针对职位：</text>
+              <text class="opt-value">{{item.lastOptimizationJob}}</text>
+            </view>
+          </view>
+        </block>
+        
+        <!-- 无优化简历时的提示 -->
+        <view class="empty-container" wx:if="{{optimizedResumes.length === 0}}">
+          <image class="empty-icon" src="/images/empty.png"></image>
+          <text class="empty-text">暂无优化记录</text>
+          <text class="empty-desc">选择已有简历进行AI优化，提升求职竞争力</text>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 空状态 -->
+    <view class="empty-container" wx:if="{{!loading && isEmpty}}">
+      <image class="empty-icon" src="/images/empty.png"></image>
+      <text class="empty-text">暂无简历</text>
+      <text class="empty-desc">创建或上传简历，开始打造专业简历</text>
+      
+      <view class="action-buttons">
+        <button class="btn-create btn btn-primary" bindtap="createNewResume">创建简历</button>
+        <button class="btn-upload btn btn-secondary" bindtap="uploadResume">上传简历</button>
+      </view>
+    </view>
+    
+    <!-- 加载中状态 -->
+    <view class="loading-container" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </scroll-view>
+  
+  <!-- 浮动按钮区域 -->
+  <view class="fab-container" wx:if="{{!isEmpty && !loading}}">
+    <view class="fab-button" bindtap="uploadResume">
+      <image class="fab-icon" src="/images/upload.png" mode="aspectFit"></image>
+      <text class="fab-text">上传</text>
+    </view>
+    <view class="fab-button primary" bindtap="createNewResume">
+      <image class="fab-icon" src="/images/add.png" mode="aspectFit"></image>
+      <text class="fab-text">新建</text>
+    </view>
+  </view>
+  
+  <!-- 操作菜单 -->
+  <view class="action-sheet" wx:if="{{showActionSheet}}">
+    <view class="action-sheet-mask" bindtap="closeActionSheet"></view>
+    <view class="action-sheet-content">
+      <view class="action-sheet-header">
+        <text class="action-sheet-title">{{currentResume.title || '未命名简历'}}</text>
+        <view class="action-sheet-close" bindtap="closeActionSheet">×</view>
+      </view>
+      
+      <view class="action-sheet-list">
+        <view class="action-sheet-item" bindtap="editResume">
+          <image class="action-icon" src="/images/edit.png" mode="aspectFit"></image>
+          <text class="action-text">编辑简历</text>
+        </view>
+        <view class="action-sheet-item" bindtap="optimizeResume">
+          <image class="action-icon" src="/images/optimize.png" mode="aspectFit"></image>
+          <text class="action-text">简历优化</text>
+        </view>
+        <view class="action-sheet-item" bindtap="previewResume">
+          <image class="action-icon" src="/images/preview.png" mode="aspectFit"></image>
+          <text class="action-text">预览简历</text>
+        </view>
+        <view class="action-sheet-item danger" bindtap="deleteResume">
+          <image class="action-icon" src="/images/delete.png" mode="aspectFit"></image>
+          <text class="action-text">删除简历</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

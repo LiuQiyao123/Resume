@@ -1,0 +1,130 @@
+<!--pages/chat/chat.wxml-->
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="header">
+    <view class="back-btn" bindtap="navigateBack">
+      <text class="back-icon">←</text>
+    </view>
+    <view class="header-title">AI助手</view>
+    <view class="placeholder"></view>
+  </view>
+  
+  <!-- 对话内容区域 -->
+  <scroll-view 
+    class="chat-messages" 
+    scroll-y="{{true}}" 
+    scroll-top="{{scrollTop}}"
+    bindscrolltoupper="loadMoreMessages"
+    refresher-enabled="{{hasMoreMessages}}"
+    refresher-triggered="{{isLoadingMore}}"
+    refresher-background="#E9EFFD"
+  >
+    <!-- 加载中提示 -->
+    <view class="loading-more" wx:if="{{isLoadingMore}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载更多消息...</text>
+    </view>
+    
+    <!-- 消息列表 -->
+    <block wx:for="{{messages}}" wx:key="id">
+      <!-- 用户消息 -->
+      <view class="message-item user-message" wx:if="{{item.role === 'user'}}">
+        <view class="message-time">{{item.formattedTime}}</view>
+        <view class="message-content">
+          <text user-select="true">{{item.content}}</text>
+        </view>
+      </view>
+      
+      <!-- AI消息 -->
+      <view class="message-item ai-message" wx:else>
+        <view class="message-time">{{item.formattedTime}}</view>
+        <view class="message-content {{item.error ? 'message-error' : ''}}">
+          <text user-select="true">{{item.content}}</text>
+          <view class="message-pending" wx:if="{{item.pending}}">
+            <view class="dot"></view>
+            <view class="dot"></view>
+            <view class="dot"></view>
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 空提示 -->
+    <view class="empty-state" wx:if="{{isNew && !showModeSelector}}">
+      <image class="empty-icon" src="/images/chat.png"></image>
+      <text class="empty-text">即将开始新的对话...</text>
+    </view>
+  </scroll-view>
+  
+  <!-- 模式选择器 -->
+  <view class="mode-selector" wx:if="{{showModeSelector}}">
+    <view class="mode-title">选择AI助手模式</view>
+    <view class="mode-desc">选择不同模式获得针对性服务</view>
+    
+    <view class="mode-list">
+      <view 
+        class="mode-item {{selectedMode === item.id ? 'mode-selected' : ''}}" 
+        wx:for="{{aiModes}}" 
+        wx:key="id"
+        bindtap="selectMode"
+        data-mode="{{item.id}}"
+      >
+        <view class="mode-name">{{item.name}}</view>
+        <view class="mode-desc">{{item.desc}}</view>
+        <view class="mode-check" wx:if="{{selectedMode === item.id}}">✓</view>
+      </view>
+    </view>
+    
+    <button class="btn btn-primary mode-confirm-btn" bindtap="confirmModeSelection">开始对话</button>
+  </view>
+  
+  <!-- 输入区域 -->
+  <view class="chat-input-container" style="padding-bottom: {{safeBottom}}px">
+    <view class="chat-input-wrapper">
+      <input 
+        class="chat-input" 
+        value="{{inputValue}}" 
+        bindinput="onInputChange"
+        placeholder="输入消息..."
+        confirm-type="send"
+        cursor-spacing="20"
+        bindconfirm="sendMessage"
+        disabled="{{isProcessing || isRecording}}"
+      />
+      
+      <!-- 录音按钮 -->
+      <view 
+        class="voice-btn" 
+        bindtouchstart="startRecording" 
+        bindtouchend="stopRecording"
+        bindtouchcancel="cancelRecording"
+        hidden="{{isSendButtonEnabled || isProcessing}}"
+      >
+        <image src="/images/voice.png" mode="aspectFit"></image>
+      </view>
+      
+      <!-- 发送按钮 -->
+      <view 
+        class="send-btn {{isSendButtonEnabled ? 'send-btn-active' : ''}}" 
+        bindtap="sendMessage"
+        hidden="{{!isSendButtonEnabled || isProcessing}}"
+      >
+        <image src="/images/send.png" mode="aspectFit"></image>
+      </view>
+      
+      <!-- 处理中图标 -->
+      <view class="processing-btn" hidden="{{!isProcessing}}">
+        <view class="loading-spinner"></view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 录音提示遮罩 -->
+  <view class="recording-mask" wx:if="{{isRecording}}">
+    <view class="recording-panel">
+      <view class="recording-animation"></view>
+      <view class="recording-time">{{recordingTime}}"</view>
+      <view class="recording-tip">松开发送，上滑取消</view>
+    </view>
+  </view>
+</view> 

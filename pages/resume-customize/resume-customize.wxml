@@ -1,0 +1,213 @@
+<!--pages/resume-customize/resume-customize.wxml-->
+<view class="container">
+  <!-- 顶部进度条 -->
+  <view class="progress-bar">
+    <view class="progress-step {{step >= 1 ? 'active' : ''}}">
+      <view class="step-dot">1</view>
+      <view class="step-text">选择简历</view>
+    </view>
+    
+    <view class="progress-line {{step >= 2 ? 'active' : ''}}"></view>
+    
+    <view class="progress-step {{step >= 2 ? 'active' : ''}}">
+      <view class="step-dot">2</view>
+      <view class="step-text">求职信息</view>
+    </view>
+    
+    <view class="progress-line {{step >= 3 ? 'active' : ''}}"></view>
+    
+    <view class="progress-step {{step >= 3 ? 'active' : ''}}">
+      <view class="step-dot">3</view>
+      <view class="step-text">选择模板</view>
+    </view>
+    
+    <view class="progress-line {{step >= 4 ? 'active' : ''}}"></view>
+    
+    <view class="progress-step {{step >= 4 ? 'active' : ''}}">
+      <view class="step-dot">4</view>
+      <view class="step-text">优化结果</view>
+    </view>
+  </view>
+  
+  <!-- 步骤1：选择简历 -->
+  <view class="step-container" wx:if="{{step === 1}}">
+    <view class="step-title">选择您要优化的简历</view>
+    
+    <view class="resume-list-container">
+      <view class="loading-container" wx:if="{{loadingResumes}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">加载简历中...</text>
+      </view>
+      
+      <block wx:elif="{{resumeList.length > 0}}">
+        <view 
+          class="resume-item {{selectedResumeId === item.id ? 'selected' : ''}}" 
+          wx:for="{{resumeList}}" 
+          wx:key="id"
+          bindtap="selectResume"
+          data-id="{{item.id}}"
+        >
+          <view class="resume-content">
+            <view class="resume-title">{{item.title || '未命名简历'}}</view>
+            <view class="resume-info">
+              <text class="resume-time">更新时间：{{item.updateTime}}</text>
+              <text class="resume-position" wx:if="{{item.position}}">职位：{{item.position}}</text>
+            </view>
+          </view>
+          
+          <view class="resume-check" wx:if="{{selectedResumeId === item.id}}">
+            <image class="check-icon" src="/images/check.png" mode="aspectFit"></image>
+          </view>
+        </view>
+      </block>
+      
+      <view class="empty-resume" wx:elif="{{!loadingResumes}}">
+        <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
+        <text class="empty-text">您还没有简历</text>
+        <button class="btn btn-primary create-btn" bindtap="createNewResume">创建简历</button>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 步骤2：输入求职信息 -->
+  <view class="step-container" wx:if="{{step === 2}}">
+    <view class="step-title">输入目标职位信息</view>
+    <view class="step-subtitle">AI将根据这些信息为您优化简历</view>
+    
+    <view class="form-container">
+      <view class="form-item">
+        <view class="form-label required">目标职位</view>
+        <input 
+          class="form-input" 
+          placeholder="请输入您要申请的职位名称"
+          value="{{position}}"
+          bindinput="onInputChange"
+          data-field="position"
+        />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">目标公司</view>
+        <input 
+          class="form-input" 
+          placeholder="请输入您要申请的公司名称（选填）"
+          value="{{company}}"
+          bindinput="onInputChange"
+          data-field="company"
+        />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label required">职位描述</view>
+        <textarea 
+          class="form-textarea" 
+          placeholder="请粘贴职位描述，或输入职位要求信息"
+          value="{{jobDescription}}"
+          bindinput="onInputChange"
+          data-field="jobDescription"
+          maxlength="1000"
+        />
+        <view class="textarea-counter">{{jobDescription.length}}/1000</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 步骤3：选择模板 -->
+  <view class="step-container" wx:if="{{step === 3}}">
+    <view class="step-title">选择简历模板</view>
+    <view class="step-subtitle">选择一个合适的模板展示您的优势</view>
+    
+    <view class="templates-container">
+      <view 
+        class="template-item {{selectedTemplateId === item.id ? 'selected' : ''}}" 
+        wx:for="{{templates}}" 
+        wx:key="id"
+        bindtap="selectTemplate"
+        data-id="{{item.id}}"
+      >
+        <image class="template-preview" src="{{item.preview}}" mode="aspectFit"></image>
+        <view class="template-info">
+          <view class="template-name">{{item.name}}</view>
+          <view class="template-tags">
+            <text class="template-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+          </view>
+        </view>
+        <view class="template-check" wx:if="{{selectedTemplateId === item.id}}">
+          <image class="check-icon" src="/images/check.png" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+    
+    <view class="optimization-cost">
+      <view class="cost-info">
+        <text class="cost-label">优化费用：</text>
+        <text class="cost-value">{{optimizationCost}}积分</text>
+      </view>
+      <view class="credits-info">
+        <text class="credits-label">我的积分：</text>
+        <text class="credits-value {{userCredits < optimizationCost ? 'insufficient' : ''}}">{{userCredits}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 步骤4：优化结果 -->
+  <view class="step-container" wx:if="{{step === 4}}">
+    <view class="step-title">简历优化完成</view>
+    <view class="step-subtitle">AI已为您优化了以下内容</view>
+    
+    <view class="result-container">
+      <view class="result-item">
+        <view class="result-title">目标职位</view>
+        <view class="result-content">{{position}}</view>
+      </view>
+      
+      <view class="result-item" wx:if="{{company}}">
+        <view class="result-title">目标公司</view>
+        <view class="result-content">{{company}}</view>
+      </view>
+      
+      <view class="result-item">
+        <view class="result-title">优化摘要</view>
+        <view class="result-content">{{optimizationResult.summary || '简历已针对目标职位进行优化，突显了与职位要求相关的技能和经验，提高了简历的匹配度。'}}</view>
+      </view>
+      
+      <view class="result-item">
+        <view class="result-title">优化内容</view>
+        <view class="result-improvements">
+          <view class="improvement-item" wx:for="{{optimizationResult.improvements || ['优化了个人技能，使其更符合职位要求', '调整了工作经验描述，强调与目标职位相关的成就', '优化了简历结构和布局，提高可读性', '改进了用词表达，使简历更专业']}}" wx:key="*this">
+            <image class="improvement-icon" src="/images/success.png" mode="aspectFit"></image>
+            <text class="improvement-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="success-container">
+      <image class="success-icon" src="/images/success-large.png" mode="aspectFit"></image>
+      <view class="success-text">简历优化成功</view>
+    </view>
+  </view>
+  
+  <!-- 底部按钮 -->
+  <view class="footer-buttons">
+    <block wx:if="{{step < 4}}">
+      <button class="btn btn-secondary" bindtap="prevStep" wx:if="{{step > 1}}">上一步</button>
+      <button class="btn btn-primary" bindtap="nextStep" loading="{{loading}}">
+        {{step === 3 ? '开始优化' : '下一步'}}
+      </button>
+    </block>
+    
+    <block wx:else>
+      <button class="btn btn-secondary" bindtap="viewOptimizedResume">查看简历</button>
+      <button class="btn btn-primary" bindtap="applyOptimization" loading="{{loading}}">应用优化</button>
+    </block>
+  </view>
+  
+  <!-- 加载遮罩 -->
+  <view class="loading-mask" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner large"></view>
+      <view class="loading-text">{{step === 3 ? '正在优化简历，请稍候...' : '处理中...'}}</view>
+    </view>
+  </view>
+</view> 

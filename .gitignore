@@ -1,0 +1,63 @@
+# 项目依赖
+node_modules/
+miniprogram_npm/
+
+# 开发工具配置
+.DS_Store
+.idea/
+.vscode/
+
+# 小程序特定文件
+project.private.config.json
+
+# 日志文件
+*.log
+
+# 本地环境配置
+.env
+.env.local
+
+# 编译输出
+dist/
+
+# 微信开发者工具本地配置
+project.config.json
+
+# 临时文件
+tmp/
+temp/
+
+# 依赖包
+package-lock.json
+yarn.lock
+
+# 环境变量
+.env.*.local
+
+# 日志文件
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 编辑器相关
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 构建目录
+build/
+uploads/
+.tmp/
+
+# 证书和密钥
+*.pem
+*.key
+*.cert
+*.crt
+
+# 测试报告
+coverage/
+.nyc_output/ 
