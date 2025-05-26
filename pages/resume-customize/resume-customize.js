@@ -2,351 +2,345 @@ const app = getApp();
 
 Page({
   data: {
-    step: 1, // 1: 选择简历, 2: 输入求职信息, 3: 选择模板, 4: 优化结果
-    resumeList: [],
-    loadingResumes: true,
-    selectedResumeId: '',
-    selectedResume: null,
-    position: '',
-    company: '',
+    resumeId: '',
+    resume: null,
+    loading: true,
+    targetJob: '',
+    targetCompany: '',
     jobDescription: '',
-    templates: [
-      { id: 'professional', name: '专业简洁', preview: '/images/template-professional.png', tags: ['专业', '通用'] },
-      { id: 'modern', name: '现代风格', preview: '/images/template-modern.png', tags: ['时尚', '创意'] },
-      { id: 'tech', name: '科技风格', preview: '/images/template-tech.png', tags: ['技术', 'IT'] },
-      { id: 'elegant', name: '优雅格调', preview: '/images/template-elegant.png', tags: ['高级', '管理'] }
-    ],
-    selectedTemplateId: 'professional',
-    optimizationResult: null,
-    loading: false,
-    error: null,
-    optimizationCost: 20, // 默认消耗积分
-    userCredits: 0,
-    optimizationId: null
+    customRequirements: '',
+    chatHistory: [],
+    sending: false,
+    optimizing: false,
+    showPreview: false,
+    optimizedContent: null
   },
 
   onLoad(options) {
-    // 如果有传入简历ID，则直接选中
     if (options.resumeId) {
-      this.setData({
-        selectedResumeId: options.resumeId
-      });
-    }
-    
-    // 如果有传入职位，则填入
-    if (options.position) {
-      this.setData({
-        position: options.position
-      });
-    }
-    
-    this.fetchResumes();
-    this.fetchUserCredits();
-  },
-
-  // 获取用户简历列表
-  async fetchResumes() {
-    this.setData({ loadingResumes: true });
-    
-    try {
-      const res = await app.request({
-        url: '/api/resumes',
-        method: 'GET'
-      });
-      
-      if (res.success) {
-        const resumeList = res.data.map(item => ({
-          ...item,
-          updateTime: this.formatDate(new Date(item.updateTime))
-        }));
-        
-        this.setData({
-          resumeList,
-          loadingResumes: false
-        });
-        
-        // 如果已经选择了简历ID，则查找并设置选中的简历
-        if (this.data.selectedResumeId) {
-          const selectedResume = resumeList.find(resume => resume.id === this.data.selectedResumeId);
-          if (selectedResume) {
-            this.setData({
-              selectedResume
-            });
-          }
-        }
-      } else {
-        this.setData({
-          loadingResumes: false,
-          error: res.error.message || '获取简历列表失败'
-        });
-        
-        wx.showToast({
-          title: res.error.message || '获取简历列表失败',
-          icon: 'none'
-        });
-      }
-    } catch (error) {
-      console.error('获取简历列表失败', error);
-      
-      this.setData({
-        loadingResumes: false,
-        error: '获取简历列表失败'
-      });
-      
+      this.setData({ resumeId: options.resumeId });
+      this.fetchResumeDetail();
+    } else {
       wx.showToast({
-        title: '获取简历列表失败',
+        title: '参数错误',
         icon: 'none'
       });
+      wx.navigateBack();
     }
   },
 
-  // 获取用户积分
-  async fetchUserCredits() {
+  // 获取简历详情
+  async fetchResumeDetail() {
     try {
       const res = await app.request({
-        url: '/api/credits',
+        url: `/api/resumes/${this.data.resumeId}`,
         method: 'GET'
       });
-      
+
       if (res.success) {
         this.setData({
-          userCredits: res.data.balance
-        });
-      }
-    } catch (error) {
-      console.error('获取积分信息失败', error);
-    }
-  },
-
-  // 格式化日期
-  formatDate(date) {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  },
-
-  // 选择简历
-  selectResume(e) {
-    const resumeId = e.currentTarget.dataset.id;
-    const selectedResume = this.data.resumeList.find(resume => resume.id === resumeId);
-    
-    this.setData({
-      selectedResumeId: resumeId,
-      selectedResume: selectedResume
-    });
-  },
-
-  // 选择模板
-  selectTemplate(e) {
-    const templateId = e.currentTarget.dataset.id;
-    
-    this.setData({
-      selectedTemplateId: templateId
-    });
-  },
-
-  // 处理输入变化
-  onInputChange(e) {
-    const { field } = e.currentTarget.dataset;
-    this.setData({
-      [field]: e.detail.value
-    });
-  },
-
-  // 下一步
-  nextStep() {
-    const { step } = this.data;
-    
-    // 验证当前步骤
-    if (step === 1) {
-      if (!this.data.selectedResumeId) {
-        wx.showToast({
-          title: '请选择一份简历',
-          icon: 'none'
-        });
-        return;
-      }
-    } else if (step === 2) {
-      if (!this.data.position.trim()) {
-        wx.showToast({
-          title: '请输入目标职位',
-          icon: 'none'
-        });
-        return;
-      }
-      
-      if (!this.data.jobDescription.trim()) {
-        wx.showToast({
-          title: '请输入职位描述',
-          icon: 'none'
-        });
-        return;
-      }
-    } else if (step === 3) {
-      if (this.data.userCredits < this.data.optimizationCost) {
-        wx.showModal({
-          title: '积分不足',
-          content: `您的积分余额不足，当前余额：${this.data.userCredits}，需要：${this.data.optimizationCost}。是否前往充值？`,
-          confirmText: '去充值',
-          cancelText: '取消',
-          success: (res) => {
-            if (res.confirm) {
-              wx.navigateTo({
-                url: '/pages/points/points'
-              });
-            }
-          }
-        });
-        return;
-      }
-      
-      // 开始优化
-      this.startOptimization();
-      return;
-    }
-    
-    this.setData({
-      step: step + 1
-    });
-  },
-
-  // 上一步
-  prevStep() {
-    const { step } = this.data;
-    if (step <= 1) return;
-    
-    this.setData({
-      step: step - 1
-    });
-  },
-
-  // 开始简历优化
-  async startOptimization() {
-    this.setData({
-      loading: true,
-      error: null
-    });
-    
-    try {
-      const res = await app.request({
-        url: '/api/resumes/optimize',
-        method: 'POST',
-        data: {
-          resumeId: this.data.selectedResumeId,
-          position: this.data.position,
-          company: this.data.company,
-          jobDescription: this.data.jobDescription,
-          templateId: this.data.selectedTemplateId
-        }
-      });
-      
-      if (res.success) {
-        this.setData({
-          optimizationResult: res.data.result,
-          optimizationId: res.data.optimizationId,
-          step: 4,
+          resume: res.data,
           loading: false
         });
-        
-        // 刷新积分
-        this.fetchUserCredits();
       } else {
-        this.setData({
-          loading: false,
-          error: res.error.message || '简历优化失败'
-        });
-        
-        wx.showToast({
-          title: res.error.message || '简历优化失败',
-          icon: 'none'
-        });
+        throw new Error(res.message || '获取简历失败');
       }
     } catch (error) {
-      console.error('简历优化失败', error);
-      
-      this.setData({
-        loading: false,
-        error: '请求失败，请重试'
-      });
-      
+      console.error('获取简历失败：', error);
       wx.showToast({
-        title: '请求失败，请重试',
+        title: '获取简历失败',
         icon: 'none'
       });
+      wx.navigateBack();
     }
   },
 
-  // 查看优化后的简历
-  viewOptimizedResume() {
-    if (!this.data.optimizationId) return;
-    
-    wx.navigateTo({
-      url: `/pages/resume-preview/resume-preview?id=${this.data.selectedResumeId}&optimizationId=${this.data.optimizationId}`
+  // 输入目标职位
+  onJobInput(e) {
+    this.setData({
+      targetJob: e.detail.value
     });
+  },
+
+  // 输入目标公司
+  onCompanyInput(e) {
+    this.setData({
+      targetCompany: e.detail.value
+    });
+  },
+
+  // 输入职位描述
+  onJDInput(e) {
+    this.setData({
+      jobDescription: e.detail.value
+    });
+  },
+
+  // 输入自定义要求
+  onRequirementsInput(e) {
+    this.setData({
+      customRequirements: e.detail.value
+    });
+  },
+
+  // 开始优化
+  async startOptimize() {
+    if (!this.validateInputs()) return;
+
+    this.setData({ optimizing: true });
+
+    try {
+      // 初始化对话
+      const initMessage = this.generateInitialPrompt();
+      await this.sendMessage(initMessage, true);
+
+      // 开始与 AI 的对话循环
+      await this.optimizationLoop();
+
+    } catch (error) {
+      console.error('优化失败：', error);
+      wx.showToast({
+        title: '优化失败，请重试',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ optimizing: false });
+    }
+  },
+
+  // 生成初始提示语
+  generateInitialPrompt() {
+    const { resume, targetJob, targetCompany, jobDescription, customRequirements } = this.data;
+    
+    let prompt = `请帮我优化以下简历，使其更适合应聘 ${targetJob}`;
+    if (targetCompany) {
+      prompt += ` 在 ${targetCompany}`;
+    }
+    prompt += ' 的职位。\n\n';
+
+    if (jobDescription) {
+      prompt += `职位描述：\n${jobDescription}\n\n`;
+    }
+
+    if (customRequirements) {
+      prompt += `具体要求：\n${customRequirements}\n\n`;
+    }
+
+    prompt += `我的简历内容：\n${JSON.stringify(resume.content, null, 2)}`;
+
+    return prompt;
+  },
+
+  // 优化循环
+  async optimizationLoop() {
+    let optimizationComplete = false;
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
+
+    while (!optimizationComplete && retryCount < MAX_RETRIES) {
+      try {
+        // 调用 AI 服务
+        const response = await app.request({
+          url: '/api/ai/chat',
+          method: 'POST',
+          data: {
+            resumeId: this.data.resumeId,
+            messages: this.data.chatHistory
+          }
+        });
+
+        if (response.success) {
+          // 添加 AI 回复到对话历史
+          this.addMessage(response.data.message, false);
+
+          if (response.data.optimizedContent) {
+            // AI 已完成优化
+            this.setData({
+              optimizedContent: response.data.optimizedContent,
+              showPreview: true
+            });
+            optimizationComplete = true;
+          } else {
+            // 需要继续对话
+            await this.handleFollowUpQuestions(response.data.suggestions);
+          }
+        } else {
+          throw new Error(response.message || '优化失败');
+        }
+      } catch (error) {
+        console.error('优化过程出错：', error);
+        retryCount++;
+        
+        if (retryCount >= MAX_RETRIES) {
+          wx.showToast({
+            title: '优化失败，请重试',
+            icon: 'none'
+          });
+          break;
+        }
+      }
+    }
+  },
+
+  // 处理后续问题
+  async handleFollowUpQuestions(suggestions) {
+    if (!Array.isArray(suggestions) || suggestions.length === 0) return;
+
+    // 显示建议给用户
+    const res = await wx.showModal({
+      title: '优化建议',
+      content: suggestions[0],
+      showCancel: true,
+      confirmText: '接受',
+      cancelText: '拒绝'
+    });
+
+    if (res.confirm) {
+      // 用户接受建议
+      await this.sendMessage('好的，请继续优化。', true);
+    } else {
+      // 用户拒绝建议
+      await this.sendMessage('不需要这个修改，请继续优化其他部分。', true);
+    }
+  },
+
+  // 发送消息
+  async sendMessage(content, isUser = true) {
+    this.setData({ sending: true });
+
+    try {
+      // 添加消息到对话历史
+      this.addMessage(content, isUser);
+
+      if (!isUser) return; // 如果是 AI 的消息，不需要发送请求
+
+      // 发送消息到后端
+      const response = await app.request({
+        url: '/api/ai/chat',
+        method: 'POST',
+        data: {
+          resumeId: this.data.resumeId,
+          messages: this.data.chatHistory
+        }
+      });
+
+      if (response.success) {
+        // 添加 AI 的回复
+        this.addMessage(response.data.message, false);
+      } else {
+        throw new Error(response.message || '发送失败');
+      }
+    } catch (error) {
+      console.error('发送消息失败：', error);
+      wx.showToast({
+        title: '发送失败，请重试',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ sending: false });
+    }
+  },
+
+  // 添加消息到对话历史
+  addMessage(content, isUser) {
+    const message = {
+      content,
+      isUser,
+      timestamp: new Date().toISOString()
+    };
+
+    this.setData({
+      chatHistory: [...this.data.chatHistory, message]
+    });
+  },
+
+  // 验证输入
+  validateInputs() {
+    const { targetJob, jobDescription } = this.data;
+
+    if (!targetJob.trim()) {
+      wx.showToast({
+        title: '请输入目标职位',
+        icon: 'none'
+      });
+      return false;
+    }
+
+    if (!jobDescription.trim()) {
+      wx.showToast({
+        title: '请输入职位描述',
+        icon: 'none'
+      });
+      return false;
+    }
+
+    return true;
   },
 
   // 应用优化结果
   async applyOptimization() {
-    if (!this.data.optimizationId) return;
-    
-    this.setData({
-      loading: true
-    });
-    
+    if (!this.data.optimizedContent) return;
+
     try {
       const res = await app.request({
-        url: `/api/resumes/optimize/${this.data.optimizationId}/apply`,
-        method: 'POST'
+        url: `/api/resumes/${this.data.resumeId}/optimize`,
+        method: 'POST',
+        data: {
+          content: this.data.optimizedContent,
+          targetJob: this.data.targetJob,
+          targetCompany: this.data.targetCompany
+        }
       });
-      
+
       if (res.success) {
         wx.showToast({
-          title: '应用成功',
+          title: '优化成功',
           icon: 'success'
         });
-        
-        // 延迟跳转，让用户能看到成功提示
-        setTimeout(() => {
-          wx.navigateTo({
-            url: `/pages/resume-editor/resume-editor?id=${this.data.selectedResumeId}`
-          });
-        }, 1500);
+
+        // 扣除积分
+        await this.deductPoints();
+
+        // 返回上一页
+        wx.navigateBack();
       } else {
-        this.setData({
-          loading: false
-        });
-        
-        wx.showToast({
-          title: res.error.message || '应用优化失败',
-          icon: 'none'
-        });
+        throw new Error(res.message || '应用优化失败');
       }
     } catch (error) {
-      console.error('应用优化失败', error);
-      
-      this.setData({
-        loading: false
-      });
-      
+      console.error('应用优化失败：', error);
       wx.showToast({
-        title: '应用优化失败',
+        title: '应用失败，请重试',
         icon: 'none'
       });
     }
   },
 
-  // 返回首页
-  goHome() {
-    wx.switchTab({
-      url: '/pages/index/index'
-    });
+  // 扣除积分
+  async deductPoints() {
+    try {
+      await app.request({
+        url: '/api/user/points/deduct',
+        method: 'POST',
+        data: {
+          points: 1,
+          reason: '简历优化'
+        }
+      });
+    } catch (error) {
+      console.error('扣除积分失败：', error);
+    }
   },
 
-  // 创建新的简历
-  createNewResume() {
-    wx.navigateTo({
-      url: '/pages/resume-editor/resume-editor'
+  // 取消优化
+  cancelOptimization() {
+    wx.showModal({
+      title: '确认取消',
+      content: '确定要取消本次优化吗？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateBack();
+        }
+      }
     });
   }
-}) 
+}); 

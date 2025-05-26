@@ -1,32 +1,34 @@
 // app.js
 import config from './config';
 import { showToast } from './utils/toast';
+import store from './store/index';
 
 App({
   onLaunch() {
-    // 初始化云托管环境
-    if (wx.cloud) {
+    // 初始化云开发环境
+    if (!wx.cloud) {
+      console.error('请使用 2.2.3 或以上的基础库以使用云能力');
+    } else {
       wx.cloud.init({
-        env: config.cloudEnv
+        env: config.cloudEnv,
+        traceUser: true
       });
     }
     
-    // 检查用户登录状态
-    this.checkLoginStatus();
+    // 初始化存储
+    store.init();
     
-    // 获取系统信息
-    const systemInfo = wx.getSystemInfoSync();
-    this.globalData.systemInfo = systemInfo;
-    
-    // 计算安全区域
-    this.calculateSafeArea(systemInfo);
-    const port = process.env.PORT || 80;
-    app.listen(port, '0.0.0.0', () => {  // 必须监听 0.0.0.0 而不是 127.0.0.1
-        console.log(`Server running on port ${port}`);
-    });
+    // 初始化系统信息
+    this.initSystemInfo();
 
-    // 添加请求拦截器
-    this.setupRequestInterceptor();
+    // 设置全局状态
+    this.globalData.store = store;
+    
+    console.log('App启动，当前状态：', {
+      isTestMode: store.state.isTestMode,
+      isLoggedIn: store.checkLoginStatus(),
+      userInfo: store.state.userInfo
+    });
 
     // 添加全局错误处理
     wx.onError((error) => {
@@ -36,39 +38,47 @@ App({
       });
     });
   },
-  
-  // 检查登录状态
-  async checkLoginStatus() {
+
+  // 初始化系统信息
+  initSystemInfo() {
     try {
-      const token = wx.getStorageSync('token');
+      // 获取系统信息
+      const systemInfo = wx.getSystemInfoSync();
+      this.globalData.systemInfo = systemInfo;
+
+      // 获取胶囊按钮信息
+      const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
       
-      if (token) {
-        // 验证token有效性
-        const result = await this.request({
-          url: '/api/auth/verify',
-          method: 'POST',
-          data: { token }
-        });
-        
-        if (result.success) {
-          this.globalData.isLoggedIn = true;
-          this.globalData.userInfo = result.data.userInfo;
-        } else {
-          // token无效，清除存储
-          wx.removeStorageSync('token');
-          this.globalData.isLoggedIn = false;
-        }
-      } else {
-        this.globalData.isLoggedIn = false;
-      }
+      // 设置状态栏和导航栏高度
+      this.globalData.StatusBar = systemInfo.statusBarHeight;
+      this.globalData.Custom = menuButtonInfo;
+      this.globalData.CustomBar = menuButtonInfo.bottom + menuButtonInfo.top - systemInfo.statusBarHeight;
+
+      // 计算安全区域
+      this.calculateSafeArea(systemInfo);
     } catch (error) {
-      console.error('检查登录状态失败', error);
-      this.globalData.isLoggedIn = false;
+      console.error('初始化系统信息失败：', error);
+      // 设置默认值
+      this.globalData.StatusBar = 20;
+      this.globalData.CustomBar = 60;
+      this.globalData.safeArea = {
+        top: 88,
+        bottom: 34,
+        left: 0,
+        right: 0,
+        width: 375,
+        height: 555
+      };
     }
   },
   
   // 计算安全区域
   calculateSafeArea(systemInfo) {
+    if (!systemInfo || !systemInfo.safeArea) {
+      console.warn('系统信息或安全区域信息不完整');
+      return;
+    }
+
     // 计算底部安全区域高度
     const safeBottom = systemInfo.screenHeight - systemInfo.safeArea.bottom;
     
@@ -99,12 +109,15 @@ App({
       };
       
       console.log('发起请求:', {
+        env: config.cloudEnv,
+        service: config.serviceId,
         path: options.url,
         method: options.method,
         data: options.data,
         header: header
       });
       
+      // 使用云托管服务
       wx.cloud.callContainer({
         config: {
           env: config.cloudEnv
@@ -130,59 +143,28 @@ App({
           } else if (res.statusCode >= 200 && res.statusCode < 300) {
             resolve(res.data);
           } else {
-            reject(new Error(`请求失败: ${res.statusCode}`));
+            reject(new Error(`请求失败: ${res.statusCode} ${res.data ? JSON.stringify(res.data) : ''}`));
           }
         },
         fail: (err) => {
           console.error('请求失败:', err);
-          // 添加重试逻辑
-          if (options._retryCount === undefined) {
-            options._retryCount = 0;
-          }
-          if (options._retryCount < 3) {
-            options._retryCount++;
-            console.log(`第 ${options._retryCount} 次重试请求`);
-            setTimeout(() => {
-              this.request(options).then(resolve).catch(reject);
-            }, 1000 * options._retryCount); // 递增重试延迟
-          } else {
-            reject(err);
-          }
+          reject(err);
         }
       });
     });
   },
   
-  // 添加请求拦截器
-  setupRequestInterceptor() {
-    const originalRequest = wx.request;
-    
-    Object.defineProperty(wx, 'request', {
-      configurable: true,
-      enumerable: true,
-      writable: true,
-      value: (options) => {
-        // 添加token到请求头
-        const token = wx.getStorageSync('token');
-        if (token) {
-          options.header = {
-            ...options.header,
-            'Authorization': `Bearer ${token}`
-          };
-        }
-        
-        return originalRequest(options);
-      }
-    });
-  },
-  
   // 全局数据
   globalData: {
-    userInfo: null,
-    isLoggedIn: false,
+    store: null,
     systemInfo: null,
     safeArea: null,
     apiBaseUrl: config.apiBaseUrl,
-    version: '1.0.0'
+    version: '1.0.0',
+    isLoggedIn: false,
+    userInfo: null,
+    StatusBar: null,
+    Custom: null,
+    CustomBar: null
   }
-})
+});

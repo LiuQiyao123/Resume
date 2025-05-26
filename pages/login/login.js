@@ -1,3 +1,5 @@
+import { api } from '../../services/api';
+import store from '../../store/index';
 import { showToast } from '../../utils/toast';
 import config from '../../config';
 
@@ -5,10 +7,24 @@ const app = getApp();
 
 Page({
   data: {
-    isLoading: false
+    isLoading: false,
+    isTestMode: config.isTestMode // 添加测试模式标记
   },
 
   onLoad() {
+    // 如果已经登录，直接跳转
+    if (store.checkLoginStatus()) {
+      this.navigateBack();
+    }
+
+    // 测试模式自动登录
+    if (store.state.isTestMode) {
+      this.handleTestModeLogin();
+    }
+
+    // 初始化store
+    store.init();
+    
     // 检查云开发是否初始化
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力');
@@ -27,109 +43,54 @@ Page({
       cloudEnv: app.globalData.cloudEnv,
       serviceId: app.globalData.serviceId
     });
+
+    // 如果是测试模式，自动填充测试数据
+    if (this.data.isTestMode) {
+      console.log('当前处于测试模式');
+    }
+  },
+
+  // 处理测试模式登录
+  handleTestModeLogin() {
+    console.log('执行测试模式登录');
+    if (store.mockLogin()) {
+      console.log('测试模式登录成功', store.state);
+      this.navigateBack();
+    }
   },
 
   // 登录按钮点击事件
-  async login() {
+  handleLogin() {
     if (this.data.isLoading) return;
     
     this.setData({ isLoading: true });
     wx.showLoading({ title: '登录中...' });
 
-    try {
-      // 1. 获取微信登录凭证
-      const loginRes = await this.wxLogin();
-      
-      if (!loginRes.code) {
-        throw new Error('获取登录凭证失败');
-      }
-
-      // 2. 发送 code 到服务器换取登录态
-      const result = await this.serverLogin(loginRes.code);
-      
-      if (result.success) {
-        // 保存登录信息
-        wx.setStorageSync('token', result.token);
-        wx.setStorageSync('userInfo', result.userInfo);
-
-        showToast({
-          title: '登录成功',
-          icon: 'success'
-        });
-
-        // 跳转逻辑
-        const pages = getCurrentPages();
-        if (pages.length > 1) {
-          wx.navigateBack();
-        } else {
-          wx.switchTab({
-            url: '/pages/index/index'
-          });
-        }
-      } else {
-        throw new Error(result.message || '登录失败');
-      }
-      
-    } catch (error) {
-      console.error('登录失败：', error);
-      showToast({
-        title: error.message || '登录失败，请重试'
-      });
-    } finally {
-      wx.hideLoading();
-      this.setData({ isLoading: false });
-    }
-  },
-
-  // 封装 wx.login 为 Promise
-  wxLogin() {
-    return new Promise((resolve, reject) => {
-      wx.login({
-        success: resolve,
-        fail: (error) => {
-          console.error('wx.login 失败：', error);
-          reject(new Error('微信登录失败，请重试'));
-        }
-      });
+    // 直接使用测试登录
+    store.init();
+    
+    wx.hideLoading();
+    wx.showToast({
+      title: '登录成功',
+      icon: 'success',
+      duration: 2000
     });
+
+    // 延迟跳转，等待 toast 显示完成
+    setTimeout(() => {
+      this.navigateBack();
+    }, 1500);
   },
 
-  // 服务器登录
-  async serverLogin(code) {
-    try {
-      if (!config.api || !config.api.login) {
-        throw new Error('登录接口未配置');
-      }
-
-      const response = await wx.request({
-        url: config.api.login,
-        method: 'POST',
-        data: {
-          code,
-          appId: config.appId
-        }
+  // 返回上一页或首页
+  navigateBack() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+    } else {
+      wx.switchTab({
+        url: '/pages/index/index'
       });
-
-      if (!response.data) {
-        throw new Error('服务器响应异常');
-      }
-
-      return response.data;
-      
-    } catch (error) {
-      console.error('服务器登录失败：', error);
-      throw new Error('服务器登录失败，请重试');
     }
-  },
-
-  // 返回上一页
-  goBack() {
-    wx.navigateBack({
-      fail: () => {
-        wx.switchTab({
-          url: '/pages/index/index'
-        });
-      }
-    });
   }
 }) 

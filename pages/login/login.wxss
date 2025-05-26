@@ -75,10 +75,9 @@
 }
 
 .login-title {
-  font-size: 34rpx;
+  font-size: 40rpx;
   font-weight: bold;
-  color: var(--text-color);
-  margin-bottom: 16rpx;
+  margin-bottom: 60rpx;
 }
 
 .login-desc {
@@ -87,14 +86,10 @@
 }
 
 .login-btn {
-  width: 90% !important;
-  background-color: var(--primary-color);
-  color: #ffffff;
-  font-size: 32rpx;
-  font-weight: 500;
-  padding: 20rpx 0;
-  border-radius: 12rpx;
-  margin: 0 auto 40rpx;
+  width: 80%;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
 }
 
 .login-btn::after {
@@ -115,4 +110,13 @@
 
 .privacy-link {
   color: var(--primary-color);
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 0 30rpx;
 } 

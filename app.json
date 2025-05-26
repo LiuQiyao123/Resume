@@ -1,13 +1,13 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/login/login",
     "pages/chat/chat",
     "pages/resume-list/resume-list",
-    "pages/resume-editor/resume-editor",
     "pages/resume-customize/resume-customize",
-    "pages/points/points",
-    "pages/login/login",
-    "pages/resume-preview/resume-preview"
+    "pages/resume-preview/resume-preview",
+    "pages/resume-editor/resume-editor",
+    "pages/points/points"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -41,13 +41,6 @@
       }
     ]
   },
-  "permission": {
-    "scope.userInfo": {
-      "desc": "用于完善简历信息"
-    }
-  },
-  "usingComponents": {},
-  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json",
   "cloud": true
 }
