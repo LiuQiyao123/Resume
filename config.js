@@ -2,31 +2,23 @@
 const config = {
   // 小程序配置
   appId: 'wx772e456ae8f2cd6a',
-  appSecret: 'f5c32ffac324c7f594810b54543a263f',
   
   // API接口配置
   api: {
-    // 微信官方接口
-    wxLogin: 'https://api.weixin.qq.com/sns/jscode2session',
-    // 其他接口...
-  },
-
-  // 开发环境配置
-  development: {
-    apiBaseUrl: 'http://localhost:3000',  // 开发环境API地址
-  },
-  // 生产环境配置
-  production: {
-    apiBaseUrl: 'https://your-api-domain.com',  // 生产环境API地址
+    // 使用云托管的登录接口
+    login: '/api/login'  // 登录接口路径
   }
 };
 
-// 根据环境导出配置
+// 根据环境选择基础URL
 const env = __wxConfig.envVersion || 'release';
 const envMap = {
-  'develop': 'development',
-  'trial': 'production',
-  'release': 'production'
+  'develop': 'https://express-d8id-152341-4-1348069598.sh.run.tcloudbase.com',  // 开发环境
+  'trial': 'https://express-d8id-152341-4-1348069598.sh.run.tcloudbase.com',    // 测试环境
+  'release': 'https://express-d8id-152341-4-1348069598.sh.run.tcloudbase.com'   // 生产环境
 };
 
-export default config[envMap[env] || 'production'];
+export default {
+  ...config,
+  baseUrl: envMap[env] || envMap.release
+};
