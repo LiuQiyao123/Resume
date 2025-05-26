@@ -1,5 +1,6 @@
 // app.js
 import config from './config';
+import { showToast } from './utils/toast';
 
 App({
   onLaunch() {
@@ -22,6 +23,17 @@ App({
     const port = process.env.PORT || 80;
     app.listen(port, '0.0.0.0', () => {  // 必须监听 0.0.0.0 而不是 127.0.0.1
         console.log(`Server running on port ${port}`);
+    });
+
+    // 添加请求拦截器
+    this.setupRequestInterceptor();
+
+    // 添加全局错误处理
+    wx.onError((error) => {
+      console.error('全局错误：', error);
+      showToast({
+        title: '应用出现错误，请重试'
+      });
     });
   },
   
@@ -101,6 +113,7 @@ App({
         header: header,
         method: options.method || 'GET',
         data: options.data,
+        timeout: 20000,  // 增加超时时间到20秒
         success: (res) => {
           console.log('请求响应:', res);
           
@@ -122,9 +135,44 @@ App({
         },
         fail: (err) => {
           console.error('请求失败:', err);
-          reject(err);
+          // 添加重试逻辑
+          if (options._retryCount === undefined) {
+            options._retryCount = 0;
+          }
+          if (options._retryCount < 3) {
+            options._retryCount++;
+            console.log(`第 ${options._retryCount} 次重试请求`);
+            setTimeout(() => {
+              this.request(options).then(resolve).catch(reject);
+            }, 1000 * options._retryCount); // 递增重试延迟
+          } else {
+            reject(err);
+          }
         }
       });
+    });
+  },
+  
+  // 添加请求拦截器
+  setupRequestInterceptor() {
+    const originalRequest = wx.request;
+    
+    Object.defineProperty(wx, 'request', {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: (options) => {
+        // 添加token到请求头
+        const token = wx.getStorageSync('token');
+        if (token) {
+          options.header = {
+            ...options.header,
+            'Authorization': `Bearer ${token}`
+          };
+        }
+        
+        return originalRequest(options);
+      }
     });
   },
   

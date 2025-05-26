@@ -1,28 +1,32 @@
 // config.js
-const env = __wxConfig.envVersion || 'release';
-
 const config = {
-  development: {
-    cloudEnv: 'prod-2gn7vn8085ebc3d9',  // 云托管环境ID
-    serviceId: 'express-d8id'           // 服务ID
+  // 小程序配置
+  appId: 'wx772e456ae8f2cd6a',
+  appSecret: 'f5c32ffac324c7f594810b54543a263f',
+  
+  // API接口配置
+  api: {
+    // 微信官方接口
+    wxLogin: 'https://api.weixin.qq.com/sns/jscode2session',
+    // 其他接口...
   },
+
+  // 开发环境配置
+  development: {
+    apiBaseUrl: 'http://localhost:3000',  // 开发环境API地址
+  },
+  // 生产环境配置
   production: {
-    cloudEnv: 'prod-2gn7vn8085ebc3d9',  // 云托管环境ID
-    serviceId: 'express-d8id'           // 服务ID
+    apiBaseUrl: 'https://your-api-domain.com',  // 生产环境API地址
   }
 };
 
-// 环境映射
+// 根据环境导出配置
+const env = __wxConfig.envVersion || 'release';
 const envMap = {
-  'develop': 'development',  // 开发版
-  'trial': 'production',     // 体验版
-  'release': 'production'    // 正式版
+  'develop': 'development',
+  'trial': 'production',
+  'release': 'production'
 };
 
-const currentEnv = envMap[env] || 'production';
-
-// 导出配置
-export default {
-  ...config[currentEnv],
-  env: currentEnv
-};
+export default config[envMap[env] || 'production'];

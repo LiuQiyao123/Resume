@@ -1,8 +1,10 @@
+import { showToast } from '../../utils/toast';
+import config from '../../config';
+
 const app = getApp();
 
 Page({
   data: {
-    canIUseGetUserProfile: false,
     isLoading: false
   },
 
@@ -27,108 +29,35 @@ Page({
     });
   },
 
-  // 获取用户信息并登录
-  login() {
+  // 登录按钮点击事件
+  async login() {
     if (this.data.isLoading) return;
     
     this.setData({ isLoading: true });
-    
-    if (this.data.canIUseGetUserProfile) {
-      this.getUserProfileAndLogin();
-    } else {
-      // 低版本基础库不支持getUserProfile，使用旧接口
-      this.getWxCodeAndLogin();
-    }
-  },
-  
-  // 使用getUserProfile获取用户信息并登录
-  getUserProfileAndLogin() {
-    wx.getUserProfile({
-      desc: '用于完善简历信息',
-      success: (userInfo) => {
-        // 获取微信登录凭证
-        wx.login({
-          success: (loginRes) => {
-            if (loginRes.code) {
-              // 发送code和用户信息到后端
-              this.sendLoginRequest(loginRes.code, userInfo.userInfo);
-            } else {
-              wx.showToast({
-                title: '微信登录失败',
-                icon: 'none'
-              });
-              this.setData({ isLoading: false });
-            }
-          },
-          fail: () => {
-            wx.showToast({
-              title: '微信登录失败',
-              icon: 'none'
-            });
-            this.setData({ isLoading: false });
-          }
-        });
-      },
-      fail: (err) => {
-        console.error('获取用户信息失败', err);
-        this.setData({ isLoading: false });
-      }
-    });
-  },
-  
-  // 仅获取微信code并登录（用于不支持getUserProfile的情况）
-  getWxCodeAndLogin() {
-    wx.login({
-      success: (loginRes) => {
-        if (loginRes.code) {
-          // 仅发送code到后端
-          this.sendLoginRequest(loginRes.code);
-        } else {
-          wx.showToast({
-            title: '微信登录失败',
-            icon: 'none'
-          });
-          this.setData({ isLoading: false });
-        }
-      },
-      fail: () => {
-        wx.showToast({
-          title: '微信登录失败',
-          icon: 'none'
-        });
-        this.setData({ isLoading: false });
-      }
-    });
-  },
-  
-  // 发送登录请求到后端
-  async sendLoginRequest(code, userInfo = null) {
+    wx.showLoading({ title: '登录中...' });
+
     try {
-      console.log('准备发送登录请求:', {
-        code: code,
-        userInfo: userInfo
-      });
+      // 1. 获取微信登录凭证
+      const loginRes = await this.wxLogin();
       
-      const res = await app.request({
-        url: '/api/auth/login',  // 确认这个路径是否与后端匹配
-        method: 'POST',
-        data: {
-          code,
-          userInfo
-        }
-      });
+      if (!loginRes.code) {
+        throw new Error('获取登录凭证失败');
+      }
+
+      // 2. 发送 code 到服务器换取登录态
+      const result = await this.serverLogin(loginRes.code);
       
-      console.log('登录请求响应:', res);
-      
-      if (res.success) {
-        // 保存token
-        wx.setStorageSync('token', res.data.token);
-        
-        // 更新全局数据
-        app.globalData.isLoggedIn = true;
-        app.globalData.userInfo = res.data.userInfo;
-        
-        // 返回上一页或首页
+      if (result.success) {
+        // 保存登录信息
+        wx.setStorageSync('token', result.token);
+        wx.setStorageSync('userInfo', result.userInfo);
+
+        showToast({
+          title: '登录成功',
+          icon: 'success'
+        });
+
+        // 跳转逻辑
         const pages = getCurrentPages();
         if (pages.length > 1) {
           wx.navigateBack();
@@ -137,29 +66,62 @@ Page({
             url: '/pages/index/index'
           });
         }
-        
-        wx.showToast({
-          title: '登录成功',
-          icon: 'success'
-        });
       } else {
-        console.error('登录失败:', res);
-        wx.showToast({
-          title: res.error ? res.error.message : '登录失败',
-          icon: 'none'
-        });
+        throw new Error(result.message || '登录失败');
       }
+      
     } catch (error) {
-      console.error('登录请求详细错误:', error);
-      wx.showToast({
-        title: '登录失败，请重试',
-        icon: 'none'
+      console.error('登录失败：', error);
+      showToast({
+        title: error.message || '登录失败，请重试'
       });
     } finally {
+      wx.hideLoading();
       this.setData({ isLoading: false });
     }
   },
-  
+
+  // 封装 wx.login 为 Promise
+  wxLogin() {
+    return new Promise((resolve, reject) => {
+      wx.login({
+        success: resolve,
+        fail: (error) => {
+          console.error('wx.login 失败：', error);
+          reject(new Error('微信登录失败，请重试'));
+        }
+      });
+    });
+  },
+
+  // 服务器登录
+  async serverLogin(code) {
+    try {
+      if (!config.api || !config.api.login) {
+        throw new Error('登录接口未配置');
+      }
+
+      const response = await wx.request({
+        url: config.api.login,
+        method: 'POST',
+        data: {
+          code,
+          appId: config.appId
+        }
+      });
+
+      if (!response.data) {
+        throw new Error('服务器响应异常');
+      }
+
+      return response.data;
+      
+    } catch (error) {
+      console.error('服务器登录失败：', error);
+      throw new Error('服务器登录失败，请重试');
+    }
+  },
+
   // 返回上一页
   goBack() {
     wx.navigateBack({
