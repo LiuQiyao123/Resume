@@ -1,35 +1,40 @@
 {
-  "name": "resume-server",
+  "name": "ai-resume-backend",
   "version": "1.0.0",
-  "description": "智能简历系统服务器端",
-  "main": "src/app.js",
+  "description": "AI定制简历小程序后端服务",
+  "main": "app.js",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
-    "test": "jest --detectOpenHandles",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "lint": "eslint .",
+    "test": "jest"
   },
+  "keywords": [
+    "resume",
+    "ai",
+    "wechat",
+    "miniprogram"
+  ],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
+    "axios": "^1.6.7",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.4.1",
     "express": "^4.18.2",
-    "express-rate-limit": "^6.7.0",
-    "express-validator": "^7.0.1",
-    "helmet": "^7.0.0",
-    "ioredis": "^5.6.0",
-    "jsonwebtoken": "^9.0.0",
-    "mongoose": "^7.0.3",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.1.1",
     "morgan": "^1.10.0",
-    "multer": "^1.4.5-lts.1",
-    "winston": "^3.8.2",
-    "winston-daily-rotate-file": "^4.7.1"
+    "winston": "^3.11.0"
   },
   "devDependencies": {
-    "jest": "^29.5.0",
-    "mongodb-memory-server": "^8.12.2",
-    "nodemon": "^2.0.22",
-    "supertest": "^6.3.3"
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
-}
+} 

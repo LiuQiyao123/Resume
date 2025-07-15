@@ -1,0 +1,16 @@
+{
+  "envId": "prod-2gn7vn8085ebc3d9",
+  "framework": {
+    "name": "express",
+    "plugins": {
+      "node": {
+        "use": "@cloudbase/framework-plugin-node",
+        "inputs": {
+          "entry": "app.js",
+          "name": "resume-server",
+          "path": "/server"
+        }
+      }
+    }
+  }
+} 

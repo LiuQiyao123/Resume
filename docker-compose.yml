@@ -1,0 +1,20 @@
+services:
+  resume-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: resume-server
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      NODE_ENV: 'development'
+      PORT: '3000'
+      MONGODB_URI: 'mongodb+srv://liuqiyao55180275:admin123@cluster0.jeyramz.mongodb.net/resume_miniprogram?retryWrites=true&w=majority'
+      JWT_SECRET: 'aB3kL9mN2pQ7rS1tU4vW8xY6zA5bC0dE9fG2hI6jK8lM'
+      JWT_EXPIRES_IN: '7d'
+      WECHAT_APPID: 'wx772e456ae8f2cd6a'
+      WECHAT_SECRET: '396989aaa46f0568a1ad764518f61863'
+      CLOUDBASE_ENV: 'prod-2gn7vn8085ebc3d9'
+    restart: unless-stopped

@@ -1,0 +1,46 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/index/index",
+    "pages/chat/chat",
+    "pages/resume-list/resume-list",
+    "pages/resume-customize/resume-customize",
+    "pages/resume-preview/resume-preview",
+    "pages/resume-editor/resume-editor",
+    "pages/points/points"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "AI简历定制",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#3D6EF2",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "主页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
+      },
+      {
+        "pagePath": "pages/resume-list/resume-list",
+        "text": "我的简历",
+        "iconPath": "images/resume.png",
+        "selectedIconPath": "images/resume-active.png"
+      },
+      {
+        "pagePath": "pages/points/points",
+        "text": "积分",
+        "iconPath": "images/points.png",
+        "selectedIconPath": "images/points-active.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "cloud": true
+}

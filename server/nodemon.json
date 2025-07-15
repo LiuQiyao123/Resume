@@ -1,0 +1,11 @@
+{
+  "watch": ["."],
+  "ext": "js,mjs,cjs,json",
+  "ignore": [
+    "node_modules",
+    "package-lock.json"
+  ],
+  "exec": "node app.js",
+  "verbose": true,
+  "delay": "1000"
+} 

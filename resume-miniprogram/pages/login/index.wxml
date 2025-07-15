@@ -1,0 +1,39 @@
+<!--pages/login/index.wxml-->
+<view class="container">
+  <view class="logo-area">
+    <!-- 您可以替换成您的应用Logo -->
+    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+    <view class="app-name">简历应用</view>
+  </view>
+
+  <!-- 未登录时显示 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-section">
+    <button class="login-btn" type="primary" bindtap="handleLogin">
+      <image src="/images/wechat-logo.png" class="wechat-icon"></image>
+      微信授权登录
+    </button>
+    <view class="login-tips">授权登录以体验完整功能</view>
+  </view>
+
+  <!-- 登录成功后，请求手机号 -->
+  <view wx:if="{{isLoggedIn}}" class="phone-section">
+    <view class="phone-prompt">为了更好地为您服务，请授权您的手机号</view>
+    <button class="phone-btn" type="primary" open-type="getRealtimePhoneNumber" bindgetrealtimephonenumber="handleGetPhoneNumber">
+       授权手机号(实时验证)
+    </button>
+    <button class="skip-btn" bindtap="handleSkip">稍后绑定</button>
+  </view>
+
+  <view class="loading-container" wx:if="{{isLoading}}">
+    <view class="loading-dot"></view>
+    <view class="loading-dot"></view>
+    <view class="loading-dot"></view>
+    <text>正在登录中...</text>
+  </view>
+  
+  <view class="error-tip" wx:if="{{errorMsg}}">{{errorMsg}}</view>
+</view>
+
+<view class="footer">
+  <text>登录即表示您同意我们的《用户协议》和《隐私政策》</text>
+</view> 
